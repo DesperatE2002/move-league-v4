@@ -12,6 +12,9 @@ import {
   Settings,
   Shield,
   LogOut,
+  GraduationCap,
+  Users,
+  Medal,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -50,6 +53,9 @@ export default function Sidebar({ role }: { role: string }) {
   const navItems: NavItem[] = [
     { key: "home", href: `/${locale}/anasayfa`, icon: <Home className="w-5 h-5" /> },
     { key: "battles", href: `/${locale}/duellolar`, icon: <Swords className="w-5 h-5" /> },
+    { key: "workshops", href: `/${locale}/atolyeler`, icon: <GraduationCap className="w-5 h-5" /> },
+    { key: "teams", href: `/${locale}/takimlar`, icon: <Users className="w-5 h-5" /> },
+    { key: "competitions", href: `/${locale}/yarisma`, icon: <Medal className="w-5 h-5" /> },
     { key: "rankings", href: `/${locale}/siralama`, icon: <Trophy className="w-5 h-5" /> },
     { key: "notifications", href: `/${locale}/bildirimler`, icon: <Bell className="w-5 h-5" /> },
     { key: "profile", href: `/${locale}/profil`, icon: <User className="w-5 h-5" /> },

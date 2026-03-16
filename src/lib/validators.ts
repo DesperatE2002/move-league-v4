@@ -60,8 +60,50 @@ export const battleScoreSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
+export const createWorkshopSchema = z.object({
+  title: z.string().min(3).max(200),
+  description: z.string().max(2000).optional(),
+  type: z.enum(["live", "video"]),
+  danceStyle: z.string().max(100).optional(),
+  difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  price: z.number().min(0).max(99999).optional(),
+  currency: z.enum(["TRY", "USD", "EUR"]).optional(),
+  videoUrl: z.string().url().max(500).optional(),
+  maxParticipants: z.number().int().min(1).max(1000).optional(),
+  scheduledDate: z.string().optional(),
+  durationMinutes: z.number().int().min(5).max(480).optional(),
+});
+
+export const workshopReviewSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().max(500).optional(),
+});
+
+export const createTeamSchema = z.object({
+  name: z.string().min(2).max(100),
+  description: z.string().max(500).optional(),
+  city: z.string().max(100).optional(),
+  country: z.string().max(100).optional(),
+});
+
+export const createCompetitionSchema = z.object({
+  name: z.string().min(3).max(200),
+  description: z.string().max(2000).optional(),
+  type: z.enum(["solo", "team"]),
+  city: z.string().max(100).optional(),
+  country: z.string().max(100).optional(),
+  venue: z.string().max(500).optional(),
+  startDate: z.string(),
+  endDate: z.string(),
+  maxTeams: z.number().int().min(2).max(500).optional(),
+  registrationDeadline: z.string().optional(),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 export type CreateBattleInput = z.infer<typeof createBattleSchema>;
 export type BattleScoreInput = z.infer<typeof battleScoreSchema>;
+export type CreateWorkshopInput = z.infer<typeof createWorkshopSchema>;
+export type CreateTeamInput = z.infer<typeof createTeamSchema>;
+export type CreateCompetitionInput = z.infer<typeof createCompetitionSchema>;

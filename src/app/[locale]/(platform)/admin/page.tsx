@@ -13,6 +13,7 @@ import {
   Award,
   Loader2,
   ChevronRight,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -89,6 +90,13 @@ export default function AdminPage() {
       icon: <Users className="w-5 h-5" />,
       href: `/${locale}/admin/kullanicilar`,
       color: "text-ml-info",
+    },
+    {
+      title: t("workshopManagement"),
+      desc: t("workshopManagementDesc"),
+      icon: <GraduationCap className="w-5 h-5" />,
+      href: `/${locale}/admin/atolyeler`,
+      color: "text-emerald-400",
     },
   ];
 

@@ -63,9 +63,9 @@ export default function BottomNav({ role }: { role: string }) {
       icon: <Swords className="w-5 h-5" />,
     },
     {
-      key: "rankings",
-      href: `/${locale}/siralama`,
-      icon: <Trophy className="w-5 h-5" />,
+      key: "workshops",
+      href: `/${locale}/atolyeler`,
+      icon: <GraduationCap className="w-5 h-5" />,
     },
     {
       key: "notifications",
