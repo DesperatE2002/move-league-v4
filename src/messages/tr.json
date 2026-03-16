@@ -227,7 +227,15 @@
     "approved": "Onaylı",
     "pendingApproval": "Onay Bekliyor",
     "approve": "Onayla",
-    "reject": "Reddet"
+    "reject": "Reddet",
+    "judgeManagement": "Hakem Yönetimi",
+    "judgeManagementDesc": "Hakem ata ve yönet",
+    "competitionManagement": "Yarışma Yönetimi",
+    "competitionManagementDesc": "Yarışmaları oluştur ve yönet",
+    "sendAnnouncement": "Duyuru Gönder",
+    "announcementTitle": "Duyuru Başlığı",
+    "announcementMessage": "Duyuru Mesajı",
+    "announcementSent": "Duyuru gönderildi"
   },
   "workshops": {
     "create": "Atölye Oluştur",

@@ -143,6 +143,16 @@ export default function LoginPage() {
               {t("register")}
             </a>
           </p>
+
+          {/* Forgot password link */}
+          <p className="mt-2 text-center">
+            <a
+              href={`/${locale}/sifre-sifirla`}
+              className="text-sm text-ml-gray-500 hover:text-ml-red transition-colors"
+            >
+              {t("forgotPassword")}
+            </a>
+          </p>
         </div>
       </div>
     </div>

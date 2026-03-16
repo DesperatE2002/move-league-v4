@@ -6,6 +6,8 @@ import {
   boolean,
   timestamp,
   pgEnum,
+  integer,
+  time,
 } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", [
@@ -61,3 +63,16 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Studio = typeof studios.$inferSelect;
 export type NewStudio = typeof studios.$inferInsert;
+
+export const studioAvailability = pgTable("studio_availability", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  studioId: uuid("studio_id")
+    .references(() => studios.id)
+    .notNull(),
+  dayOfWeek: integer("day_of_week").notNull(), // 0-6
+  startTime: time("start_time").notNull(),
+  endTime: time("end_time").notNull(),
+  isAvailable: boolean("is_available").default(true),
+});
+
+export type StudioAvailability = typeof studioAvailability.$inferSelect;

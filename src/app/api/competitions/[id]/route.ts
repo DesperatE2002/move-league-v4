@@ -68,3 +68,43 @@ export async function GET(
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
   }
 }
+
+// PATCH /api/competitions/[id] — Update competition status (admin)
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
+    }
+
+    const { id } = await params;
+    const body = await req.json();
+    const { status } = body;
+
+    const validStatuses = [
+      "upcoming",
+      "registration_open",
+      "registration_closed",
+      "in_progress",
+      "completed",
+      "cancelled",
+    ];
+
+    if (!status || !validStatuses.includes(status)) {
+      return NextResponse.json({ error: "Geçersiz durum" }, { status: 400 });
+    }
+
+    await db
+      .update(competitions)
+      .set({ status })
+      .where(eq(competitions.id, id));
+
+    return NextResponse.json({ message: "Yarışma güncellendi" });
+  } catch (error) {
+    console.error("Update competition error:", error);
+    return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
+  }
+}

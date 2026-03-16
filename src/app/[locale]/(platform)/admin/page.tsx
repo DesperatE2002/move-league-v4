@@ -14,6 +14,8 @@ import {
   Loader2,
   ChevronRight,
   GraduationCap,
+  Gavel,
+  Medal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -97,6 +99,20 @@ export default function AdminPage() {
       icon: <GraduationCap className="w-5 h-5" />,
       href: `/${locale}/admin/atolyeler`,
       color: "text-emerald-400",
+    },
+    {
+      title: t("judgeManagement"),
+      desc: t("judgeManagementDesc"),
+      icon: <Gavel className="w-5 h-5" />,
+      href: `/${locale}/admin/hakemler`,
+      color: "text-orange-400",
+    },
+    {
+      title: t("competitionManagement"),
+      desc: t("competitionManagementDesc"),
+      icon: <Medal className="w-5 h-5" />,
+      href: `/${locale}/admin/yarisma`,
+      color: "text-pink-400",
     },
   ];
 

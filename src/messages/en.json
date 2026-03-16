@@ -227,7 +227,15 @@
     "approved": "Approved",
     "pendingApproval": "Pending Approval",
     "approve": "Approve",
-    "reject": "Reject"
+    "reject": "Reject",
+    "judgeManagement": "Judge Management",
+    "judgeManagementDesc": "Assign and manage judges",
+    "competitionManagement": "Competition Management",
+    "competitionManagementDesc": "Create and manage competitions",
+    "sendAnnouncement": "Send Announcement",
+    "announcementTitle": "Announcement Title",
+    "announcementMessage": "Announcement Message",
+    "announcementSent": "Announcement sent"
   },
   "workshops": {
     "create": "Create Workshop",
