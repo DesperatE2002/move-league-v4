@@ -157,7 +157,9 @@
     "studioDate": "Date",
     "studioTime": "Time",
     "studioNotes": "Notes",
-    "studioNotesPlaceholder": "Location details, rules, etc.",
+    "studioNotesPlaceholder": "Rules, additional info, etc.",
+    "studioLocation": "Location / Venue",
+    "studioLocationPlaceholder": "Hall name, floor, address details...",
     "studioWaitingApproval": "Waiting for studio approval...",
     "studioWaitingApprovalDesc": "Waiting for the matched studio to approve. You'll receive a notification when they respond.",
     "studioApprovedMsg": "Studio approved! Battle scheduled."

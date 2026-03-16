@@ -44,7 +44,7 @@ export default function AdminBattlesPage() {
   const [battles, setBattles] = useState<Battle[]>([]);
   const [judges, setJudges] = useState<JudgeUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("accepted");
+  const [filter, setFilter] = useState("studio_approved");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [scheduleModal, setScheduleModal] = useState<string | null>(null);
   const [scheduleDate, setScheduleDate] = useState("");
@@ -58,7 +58,7 @@ export default function AdminBattlesPage() {
   async function fetchBattles() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/battles?status=${filter}`);
+      const res = await fetch(`/api/admin/battles?status=${filter}`);
       if (res.ok) {
         const data = await res.json();
         setBattles(data.battles);
@@ -133,7 +133,7 @@ export default function AdminBattlesPage() {
     );
   }
 
-  const filterTabs = ["accepted", "scheduled", "judge_assigned", "completed"];
+  const filterTabs = ["studio_pending", "studio_approved", "accepted", "scheduled", "judge_assigned", "completed"];
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -239,7 +239,7 @@ export default function AdminBattlesPage() {
 
               {/* Actions */}
               <div className="flex gap-2">
-                {["accepted", "scheduled"].includes(battle.status) && (
+                {["accepted", "studio_approved"].includes(battle.status) && (
                   <button
                     onClick={() => setScheduleModal(scheduleModal === battle.id ? null : battle.id)}
                     className="flex-1 py-2 text-xs bg-ml-dark-hover text-ml-gray-300 rounded-lg flex items-center justify-center gap-1 hover:bg-ml-gold/10 hover:text-ml-gold transition-all"
@@ -248,7 +248,7 @@ export default function AdminBattlesPage() {
                     {t("schedule")}
                   </button>
                 )}
-                {battle.status === "accepted" && !battle.judgeId && judges.length > 0 && (
+                {["accepted", "studio_approved"].includes(battle.status) && !battle.judgeId && judges.length > 0 && (
                   <select
                     onChange={(e) => {
                       if (e.target.value) handleAssignJudge(battle.id, e.target.value);

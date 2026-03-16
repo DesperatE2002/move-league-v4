@@ -92,6 +92,7 @@ export default function BattleDetailPage() {
   const [approvalDate, setApprovalDate] = useState("");
   const [approvalTime, setApprovalTime] = useState("");
   const [approvalNotes, setApprovalNotes] = useState("");
+  const [approvalLocation, setApprovalLocation] = useState("");
   const [studioApproveLoading, setStudioApproveLoading] = useState(false);
   const [studioRejectLoading, setStudioRejectLoading] = useState(false);
   const [scores, setScores] = useState({
@@ -169,6 +170,7 @@ export default function BattleDetailPage() {
         body: JSON.stringify({
           action: "studio-approve",
           scheduledDate,
+          studioLocation: approvalLocation || undefined,
           studioNotes: approvalNotes || undefined,
         }),
       });
@@ -599,6 +601,19 @@ export default function BattleDetailPage() {
             </div>
             <div>
               <label className="text-xs text-ml-gray-400 mb-1 block flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {t("studioLocation")}
+              </label>
+              <input
+                type="text"
+                value={approvalLocation}
+                onChange={(e) => setApprovalLocation(e.target.value)}
+                placeholder={t("studioLocationPlaceholder")}
+                className="w-full bg-ml-dark-hover border border-ml-dark-border rounded-xl px-4 py-3 text-sm text-ml-white placeholder:text-ml-gray-500 focus:outline-none focus:ring-2 focus:ring-ml-gold/40"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-ml-gray-400 mb-1 block flex items-center gap-1">
                 <FileText className="w-3 h-3" />
                 {t("studioNotes")}
               </label>
@@ -607,7 +622,7 @@ export default function BattleDetailPage() {
                 onChange={(e) => setApprovalNotes(e.target.value)}
                 placeholder={t("studioNotesPlaceholder")}
                 className="w-full bg-ml-dark-hover border border-ml-dark-border rounded-xl px-4 py-3 text-sm text-ml-white placeholder:text-ml-gray-500 focus:outline-none focus:ring-2 focus:ring-ml-gold/40 resize-none"
-                rows={3}
+                rows={2}
               />
             </div>
           </div>

@@ -331,7 +331,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
           return NextResponse.json({ error: "Bu stüdyonun sahibi değilsiniz" }, { status: 403 });
         }
 
-        const { scheduledDate: approveDate, studioNotes } = body as { scheduledDate?: string; studioNotes?: string };
+        const { scheduledDate: approveDate, studioNotes, studioLocation } = body as { scheduledDate?: string; studioNotes?: string; studioLocation?: string };
 
         const updateFields: Record<string, unknown> = {
           status: "studio_approved",
@@ -347,8 +347,9 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
         const dateStr = approveDate
           ? new Date(approveDate).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })
           : "";
+        const locationStr = studioLocation ? `\nYer: ${studioLocation}` : "";
         const notesStr = studioNotes ? `\nNot: ${studioNotes}` : "";
-        const approveMsg = `${stName} stüdyosu düellonuzu onayladı!${dateStr ? ` Tarih: ${dateStr}` : ""}${notesStr}`;
+        const approveMsg = `${stName} stüdyosu düellonuzu onayladı!${dateStr ? ` Tarih: ${dateStr}` : ""}${locationStr}${notesStr}`;
 
         await Promise.all([
           createNotification(battle.challengerId, "battle_scheduled", "Stüdyo Onayladı!", approveMsg, { battleId: id }),

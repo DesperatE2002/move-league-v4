@@ -157,7 +157,9 @@
     "studioDate": "Tarih",
     "studioTime": "Saat",
     "studioNotes": "Notlar",
-    "studioNotesPlaceholder": "Yer, mekan detayları, kurallar vb.",
+    "studioNotesPlaceholder": "Kurallar, ek bilgiler vb.",
+    "studioLocation": "Yer / Mekan",
+    "studioLocationPlaceholder": "Salon adı, kat, adres detayı...",
     "studioWaitingApproval": "Stüdyo onayı bekleniyor...",
     "studioWaitingApprovalDesc": "Eşleşen stüdyonun onayı bekleniyor. Stüdyo onayladığında bildirim alacaksınız.",
     "studioApprovedMsg": "Stüdyo onaylandı! Düello planlandı."
