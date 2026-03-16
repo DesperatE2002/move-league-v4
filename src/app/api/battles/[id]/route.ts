@@ -69,13 +69,17 @@ export async function GET(_req: NextRequest, ctx: RouteContext) {
 
     // Get assigned studio info if exists
     let studioInfo = null;
+    let studioOwnerId: string | null = null;
     if (battle.studioId) {
       const studioArr = await db
-        .select({ id: studios.id, name: studios.name, city: studios.city, address: studios.address })
+        .select({ id: studios.id, name: studios.name, city: studios.city, address: studios.address, ownerId: studios.ownerId })
         .from(studios)
         .where(eq(studios.id, battle.studioId))
         .limit(1);
-      studioInfo = studioArr[0] ?? null;
+      if (studioArr[0]) {
+        studioOwnerId = studioArr[0].ownerId;
+        studioInfo = { id: studioArr[0].id, name: studioArr[0].name, city: studioArr[0].city, address: studioArr[0].address };
+      }
     }
 
     return NextResponse.json({
@@ -85,6 +89,7 @@ export async function GET(_req: NextRequest, ctx: RouteContext) {
       scores,
       studioPreferences: studioPrefs,
       studio: studioInfo,
+      studioOwnerId,
     });
   } catch (error) {
     console.error("Get battle error:", error);
@@ -215,39 +220,52 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
             matchedStudioId = cStudioIds[0];
           }
 
-          // Update battle with matched studio → accepted
+          // Update battle with matched studio — keep studio_pending for owner approval
           await db
             .update(battles)
-            .set({ studioId: matchedStudioId, status: "accepted", updatedAt: new Date() })
+            .set({ studioId: matchedStudioId, updatedAt: new Date() })
             .where(eq(battles.id, id));
 
-          // Get studio name for notification
+          // Get studio name + owner for notification
           const studioRow = await db
-            .select({ name: studios.name })
+            .select({ name: studios.name, ownerId: studios.ownerId })
             .from(studios)
             .where(eq(studios.id, matchedStudioId))
             .limit(1);
 
           const studioName = studioRow[0]?.name || "Stüdyo";
+          const studioOwnerId = studioRow[0]?.ownerId;
 
+          // Notify studio owner to approve
+          if (studioOwnerId) {
+            await createNotification(
+              studioOwnerId,
+              "battle_scheduled",
+              "Düello Stüdyo Talebi!",
+              `Stüdyonuz (${studioName}) bir düello için seçildi. Onaylayıp tarih ve detay belirtebilirsiniz.`,
+              { battleId: id }
+            );
+          }
+
+          // Notify dancers that studio is matched, waiting for studio approval
           await Promise.all([
             createNotification(
               battle.challengerId,
               "battle_scheduled",
               "Stüdyo Belirlendi!",
-              `Düellonuz için ${studioName} stüdyosu eşleştirildi.`,
+              `Düellonuz için ${studioName} stüdyosu eşleştirildi. Stüdyo onayı bekleniyor.`,
               { battleId: id }
             ),
             createNotification(
               battle.opponentId,
               "battle_scheduled",
               "Stüdyo Belirlendi!",
-              `Düellonuz için ${studioName} stüdyosu eşleştirildi.`,
+              `Düellonuz için ${studioName} stüdyosu eşleştirildi. Stüdyo onayı bekleniyor.`,
               { battleId: id }
             ),
           ]);
 
-          return NextResponse.json({ message: "Stüdyo eşleştirildi!", status: "accepted", studioId: matchedStudioId });
+          return NextResponse.json({ message: "Stüdyo eşleştirildi! Stüdyo onayı bekleniyor.", status: "studio_pending", studioId: matchedStudioId });
         }
 
         return NextResponse.json({ message: "Stüdyo tercihleri kaydedildi. Diğer dansçının seçimi bekleniyor." });
@@ -291,6 +309,91 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
           .where(eq(battles.id, id));
 
         return NextResponse.json({ message: "Düello iptal edildi", status: "cancelled" });
+      }
+
+      case "studio-approve": {
+        // Studio owner approves the battle
+        if (role !== "studio" && role !== "admin") {
+          return NextResponse.json({ error: "Sadece stüdyo sahibi onaylayabilir" }, { status: 403 });
+        }
+        if (battle.status !== "studio_pending" || !battle.studioId) {
+          return NextResponse.json({ error: "Bu düello stüdyo onayı aşamasında değil" }, { status: 400 });
+        }
+
+        // Verify user owns the studio
+        const approveStudio = await db
+          .select({ ownerId: studios.ownerId, name: studios.name })
+          .from(studios)
+          .where(eq(studios.id, battle.studioId))
+          .limit(1);
+
+        if (!approveStudio[0] || (approveStudio[0].ownerId !== userId && role !== "admin")) {
+          return NextResponse.json({ error: "Bu stüdyonun sahibi değilsiniz" }, { status: 403 });
+        }
+
+        const { scheduledDate: approveDate, studioNotes } = body as { scheduledDate?: string; studioNotes?: string };
+
+        const updateFields: Record<string, unknown> = {
+          status: "studio_approved",
+          updatedAt: new Date(),
+        };
+        if (approveDate) {
+          updateFields.scheduledDate = new Date(approveDate);
+        }
+
+        await db.update(battles).set(updateFields).where(eq(battles.id, id));
+
+        const stName = approveStudio[0].name;
+        const dateStr = approveDate
+          ? new Date(approveDate).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })
+          : "";
+        const notesStr = studioNotes ? `\nNot: ${studioNotes}` : "";
+        const approveMsg = `${stName} stüdyosu düellonuzu onayladı!${dateStr ? ` Tarih: ${dateStr}` : ""}${notesStr}`;
+
+        await Promise.all([
+          createNotification(battle.challengerId, "battle_scheduled", "Stüdyo Onayladı!", approveMsg, { battleId: id }),
+          createNotification(battle.opponentId, "battle_scheduled", "Stüdyo Onayladı!", approveMsg, { battleId: id }),
+        ]);
+
+        return NextResponse.json({ message: "Stüdyo onaylandı", status: "studio_approved" });
+      }
+
+      case "studio-reject": {
+        // Studio owner rejects the battle
+        if (role !== "studio" && role !== "admin") {
+          return NextResponse.json({ error: "Sadece stüdyo sahibi reddedebilir" }, { status: 403 });
+        }
+        if (battle.status !== "studio_pending" || !battle.studioId) {
+          return NextResponse.json({ error: "Bu düello stüdyo onayı aşamasında değil" }, { status: 400 });
+        }
+
+        // Verify user owns the studio
+        const rejectStudio = await db
+          .select({ ownerId: studios.ownerId, name: studios.name })
+          .from(studios)
+          .where(eq(studios.id, battle.studioId))
+          .limit(1);
+
+        if (!rejectStudio[0] || (rejectStudio[0].ownerId !== userId && role !== "admin")) {
+          return NextResponse.json({ error: "Bu stüdyonun sahibi değilsiniz" }, { status: 403 });
+        }
+
+        const { studioNotes: rejectNotes } = body as { studioNotes?: string };
+
+        await db
+          .update(battles)
+          .set({ status: "studio_rejected", updatedAt: new Date() })
+          .where(eq(battles.id, id));
+
+        const rName = rejectStudio[0].name;
+        const rejectMsg = `${rName} stüdyosu düello talebini reddetti.${rejectNotes ? ` Sebep: ${rejectNotes}` : ""}`;
+
+        await Promise.all([
+          createNotification(battle.challengerId, "battle_declined", "Stüdyo Reddetti", rejectMsg, { battleId: id }),
+          createNotification(battle.opponentId, "battle_declined", "Stüdyo Reddetti", rejectMsg, { battleId: id }),
+        ]);
+
+        return NextResponse.json({ message: "Stüdyo reddetti", status: "studio_rejected" });
       }
 
       case "schedule": {

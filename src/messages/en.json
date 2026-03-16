@@ -149,7 +149,18 @@
     "submitStudios": "Submit Preferences",
     "studioPrefsSubmitted": "Studio preferences saved!",
     "studioWaitingOther": "Waiting for the other dancer's selection...",
-    "studioMatching": "Matching studio..."
+    "studioMatching": "Matching studio...",
+    "studioApprovalTitle": "Studio Approval Form",
+    "studioApprovalDesc": "Your studio has been selected for this battle. You can approve with date and details, or reject.",
+    "approveStudio": "Approve",
+    "rejectStudio": "Reject",
+    "studioDate": "Date",
+    "studioTime": "Time",
+    "studioNotes": "Notes",
+    "studioNotesPlaceholder": "Location details, rules, etc.",
+    "studioWaitingApproval": "Waiting for studio approval...",
+    "studioWaitingApprovalDesc": "Waiting for the matched studio to approve. You'll receive a notification when they respond.",
+    "studioApprovedMsg": "Studio approved! Battle scheduled."
   },
   "rankings": {
     "noRankings": "No rankings yet",

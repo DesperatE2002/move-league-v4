@@ -16,6 +16,8 @@ import {
   ClipboardCheck,
   MapPin,
   Building2,
+  CalendarDays,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -54,6 +56,7 @@ interface BattleDetail {
   scores: Score[];
   studioPreferences: { userId: string; studioId: string; rank: number }[];
   studio: { id: string; name: string; city: string; address: string } | null;
+  studioOwnerId: string | null;
 }
 
 interface StudioOption {
@@ -86,6 +89,11 @@ export default function BattleDetailPage() {
   const [selectedStudios, setSelectedStudios] = useState<string[]>([]);
   const [studioSubmitting, setStudioSubmitting] = useState(false);
   const [studioSuccess, setStudioSuccess] = useState(false);
+  const [approvalDate, setApprovalDate] = useState("");
+  const [approvalTime, setApprovalTime] = useState("");
+  const [approvalNotes, setApprovalNotes] = useState("");
+  const [studioApproveLoading, setStudioApproveLoading] = useState(false);
+  const [studioRejectLoading, setStudioRejectLoading] = useState(false);
   const [scores, setScores] = useState({
     challengerTechnique: 5,
     challengerCreativity: 5,
@@ -145,6 +153,50 @@ export default function BattleDetailPage() {
       if (prev.length >= 4) return prev;
       return [...prev, studioId];
     });
+  }
+
+  async function handleStudioApprove() {
+    setStudioApproveLoading(true);
+    try {
+      const scheduledDate = approvalDate && approvalTime
+        ? new Date(`${approvalDate}T${approvalTime}`).toISOString()
+        : approvalDate
+          ? new Date(approvalDate).toISOString()
+          : undefined;
+      const res = await fetch(`/api/battles/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "studio-approve",
+          scheduledDate,
+          studioNotes: approvalNotes || undefined,
+        }),
+      });
+      if (res.ok) fetchBattle();
+    } catch {
+      // fail
+    } finally {
+      setStudioApproveLoading(false);
+    }
+  }
+
+  async function handleStudioReject() {
+    setStudioRejectLoading(true);
+    try {
+      const res = await fetch(`/api/battles/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "studio-reject",
+          studioNotes: approvalNotes || undefined,
+        }),
+      });
+      if (res.ok) fetchBattle();
+    } catch {
+      // fail
+    } finally {
+      setStudioRejectLoading(false);
+    }
   }
 
   async function fetchBattle() {
@@ -428,8 +480,8 @@ export default function BattleDetailPage() {
         </div>
       )}
 
-      {/* Studio Selection Form */}
-      {battle.status === "studio_pending" && (isChallenger || isOpponent) && (() => {
+      {/* Studio Selection Form — only when no studio matched yet */}
+      {battle.status === "studio_pending" && !battle.studioId && (isChallenger || isOpponent) && (() => {
         const myPrefs = battle.studioPreferences?.filter((p) => p.userId === userId) ?? [];
         const hasSubmitted = myPrefs.length > 0 || studioSuccess;
         const otherPrefs = battle.studioPreferences?.filter((p) => p.userId !== userId) ?? [];
@@ -511,8 +563,95 @@ export default function BattleDetailPage() {
         );
       })()}
 
+      {/* Studio Owner Approval Form — when studio is matched and user owns the studio */}
+      {battle.status === "studio_pending" && battle.studioId && battle.studioOwnerId === userId && (
+        <div className="bg-ml-dark-card rounded-2xl border border-ml-gold/30 p-5 space-y-4">
+          <h3 className="text-base font-bold text-ml-white flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-ml-gold" />
+            {t("studioApprovalTitle")}
+          </h3>
+          <p className="text-xs text-ml-gray-400">{t("studioApprovalDesc")}</p>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-ml-gray-400 mb-1 block flex items-center gap-1">
+                <CalendarDays className="w-3 h-3" />
+                {t("studioDate")}
+              </label>
+              <input
+                type="date"
+                value={approvalDate}
+                onChange={(e) => setApprovalDate(e.target.value)}
+                className="w-full bg-ml-dark-hover border border-ml-dark-border rounded-xl px-4 py-3 text-sm text-ml-white focus:outline-none focus:ring-2 focus:ring-ml-gold/40"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-ml-gray-400 mb-1 block flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {t("studioTime")}
+              </label>
+              <input
+                type="time"
+                value={approvalTime}
+                onChange={(e) => setApprovalTime(e.target.value)}
+                className="w-full bg-ml-dark-hover border border-ml-dark-border rounded-xl px-4 py-3 text-sm text-ml-white focus:outline-none focus:ring-2 focus:ring-ml-gold/40"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-ml-gray-400 mb-1 block flex items-center gap-1">
+                <FileText className="w-3 h-3" />
+                {t("studioNotes")}
+              </label>
+              <textarea
+                value={approvalNotes}
+                onChange={(e) => setApprovalNotes(e.target.value)}
+                placeholder={t("studioNotesPlaceholder")}
+                className="w-full bg-ml-dark-hover border border-ml-dark-border rounded-xl px-4 py-3 text-sm text-ml-white placeholder:text-ml-gray-500 focus:outline-none focus:ring-2 focus:ring-ml-gold/40 resize-none"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={handleStudioReject}
+              disabled={studioRejectLoading}
+              className="flex-1 py-3 bg-ml-dark-hover border border-ml-dark-border hover:border-ml-red/40 text-ml-gray-300 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {studioRejectLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+              {t("rejectStudio")}
+            </button>
+            <button
+              onClick={handleStudioApprove}
+              disabled={studioApproveLoading}
+              className="flex-1 py-3 bg-ml-success hover:bg-ml-success/80 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {studioApproveLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+              {t("approveStudio")}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Dancer waiting for studio approval */}
+      {battle.status === "studio_pending" && battle.studioId && (isChallenger || isOpponent) && battle.studioOwnerId !== userId && (
+        <div className="bg-ml-dark-card rounded-xl border border-ml-warning/30 p-4 text-center">
+          <Clock className="w-8 h-8 text-ml-warning mx-auto mb-2 animate-pulse" />
+          <p className="text-sm font-semibold text-ml-white">{t("studioWaitingApproval")}</p>
+          <p className="text-xs text-ml-gray-400 mt-1">{t("studioWaitingApprovalDesc")}</p>
+        </div>
+      )}
+
+      {/* Studio Approved Info */}
+      {battle.status === "studio_approved" && (
+        <div className="bg-ml-dark-card rounded-xl border border-ml-success/30 p-4 text-center">
+          <CheckCircle className="w-8 h-8 text-ml-success mx-auto mb-2" />
+          <p className="text-sm font-semibold text-ml-success">{t("studioApprovedMsg")}</p>
+        </div>
+      )}
+
       {/* Judge Scoring Form */}
-      {["accepted", "scheduled", "judge_assigned"].includes(battle.status) &&
+      {["accepted", "scheduled", "judge_assigned", "studio_approved"].includes(battle.status) &&
         (session?.user?.role === "admin" || battle.judgeId === userId) &&
         !scoreSuccess && (
         <div className="space-y-4">

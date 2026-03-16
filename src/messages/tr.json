@@ -149,7 +149,18 @@
     "submitStudios": "Tercihleri Gönder",
     "studioPrefsSubmitted": "Stüdyo tercihleriniz kaydedildi!",
     "studioWaitingOther": "Diğer dansçının seçimi bekleniyor...",
-    "studioMatching": "Stüdyo eşleştiriliyor..."
+    "studioMatching": "Stüdyo eşleştiriliyor...",
+    "studioApprovalTitle": "Stüdyo Onay Formu",
+    "studioApprovalDesc": "Bu düello için stüdyonuz seçildi. Tarih, saat ve detayları belirterek onaylayabilir veya reddedebilirsiniz.",
+    "approveStudio": "Onayla",
+    "rejectStudio": "Reddet",
+    "studioDate": "Tarih",
+    "studioTime": "Saat",
+    "studioNotes": "Notlar",
+    "studioNotesPlaceholder": "Yer, mekan detayları, kurallar vb.",
+    "studioWaitingApproval": "Stüdyo onayı bekleniyor...",
+    "studioWaitingApprovalDesc": "Eşleşen stüdyonun onayı bekleniyor. Stüdyo onayladığında bildirim alacaksınız.",
+    "studioApprovedMsg": "Stüdyo onaylandı! Düello planlandı."
   },
   "rankings": {
     "noRankings": "Henüz sıralama yok",
