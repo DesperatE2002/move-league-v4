@@ -36,6 +36,7 @@ export const battles = pgTable("battles", {
     .notNull(),
   studioId: uuid("studio_id").references(() => studios.id),
   judgeId: uuid("judge_id").references(() => users.id),
+  danceStyle: varchar("dance_style", { length: 100 }),
   status: battleStatusEnum("status").default("pending").notNull(),
   scheduledDate: timestamp("scheduled_date"),
   challengerScore: integer("challenger_score"),

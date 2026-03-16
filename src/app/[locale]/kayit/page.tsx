@@ -13,7 +13,10 @@ import {
   AtSign,
   Loader2,
   ChevronDown,
+  Music,
 } from "lucide-react";
+import { DANCE_STYLES } from "@/lib/dance-styles";
+import { cn } from "@/lib/utils";
 
 const ROLES = ["dancer", "coach", "studio", "judge"] as const;
 
@@ -36,10 +39,19 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
 
   const updateField = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
+
+  function toggleStyle(style: string) {
+    setSelectedStyles((prev) =>
+      prev.includes(style)
+        ? prev.filter((s) => s !== style)
+        : prev.length >= 5 ? prev : [...prev, style]
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +63,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, danceStyles: selectedStyles.length > 0 ? selectedStyles : undefined }),
       });
 
       const data = await res.json();
@@ -222,6 +234,37 @@ export default function RegisterPage() {
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ml-gray-500 pointer-events-none" />
               </div>
+            </div>
+
+            {/* Dance Styles */}
+            <div>
+              <label className="block text-sm text-ml-gray-400 mb-1.5 flex items-center gap-1.5">
+                <Music className="w-3.5 h-3.5" />
+                {t("selectDanceStyles")}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {DANCE_STYLES.map((style) => {
+                  const isSelected = selectedStyles.includes(style);
+                  return (
+                    <button
+                      key={style}
+                      type="button"
+                      onClick={() => toggleStyle(style)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                        isSelected
+                          ? "bg-ml-red/20 border-ml-red/40 text-ml-red"
+                          : "bg-ml-dark-card border-ml-dark-border text-ml-gray-400 hover:border-ml-red/30"
+                      )}
+                    >
+                      {style}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-ml-gray-500 mt-1">
+                {selectedStyles.length}/5 {t("maxStyles")}
+              </p>
             </div>
 
             {/* Submit */}

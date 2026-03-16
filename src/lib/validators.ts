@@ -23,6 +23,7 @@ export const registerSchema = z.object({
     .regex(/[A-Z]/, "Şifre en az bir büyük harf içermelidir")
     .regex(/[0-9]/, "Şifre en az bir rakam içermelidir"),
   role: z.enum(["dancer", "coach", "studio", "judge"]),
+  danceStyles: z.array(z.string()).min(1, "En az bir dans stili seçmelisiniz").max(10).optional(),
 });
 
 export const loginSchema = z.object({
@@ -44,6 +45,7 @@ export const profileUpdateSchema = z.object({
 
 export const createBattleSchema = z.object({
   opponentId: z.string().uuid("Geçersiz rakip ID"),
+  danceStyle: z.string().min(1, "Dans stili seçmelisiniz").max(100).optional(),
 });
 
 export const battleScoreSchema = z.object({

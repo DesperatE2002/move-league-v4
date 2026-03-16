@@ -80,7 +80,7 @@ export default function BottomNav({ role }: { role: string }) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-ml-dark/95 backdrop-blur-lg border-t border-ml-dark-border safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-ml-dark/95 backdrop-blur-lg border-t border-ml-dark-border safe-area-bottom lg:hidden">
       <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href);

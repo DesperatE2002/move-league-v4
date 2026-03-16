@@ -50,7 +50,9 @@
       "coach": "Koç",
       "studio": "Dans Stüdyosu",
       "judge": "Hakem"
-    }
+    },
+    "selectDanceStyles": "Dans Stilleriniz",
+    "maxStyles": "En fazla 5 stil seçebilirsiniz"
   },
   "profile": {
     "title": "Profil",
@@ -109,6 +111,7 @@
     "selectedOpponent": "Seçilen Rakip",
     "change": "Değiştir",
     "sendChallenge": "Düello Gönder",
+    "selectBattleStyle": "Dans Stili Seçin",
     "challengeSent": "Düello Talebi Gönderildi!",
     "challengeSentDesc": "Rakibinizin yanıtı bekleniyor. Bildirimlerden takip edebilirsiniz.",
     "battleDetail": "Düello Detayı",

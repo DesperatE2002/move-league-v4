@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { Search, Swords, Loader2, ArrowLeft, User } from "lucide-react";
+import { Search, Swords, Loader2, ArrowLeft, User, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DANCE_STYLES } from "@/lib/dance-styles";
 
 interface UserResult {
   id: string;
@@ -30,6 +31,7 @@ export default function NewBattlePage() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [battleStyle, setBattleStyle] = useState("");
 
   async function handleSearch(q: string) {
     setQuery(q);
@@ -61,7 +63,7 @@ export default function NewBattlePage() {
       const res = await fetch("/api/battles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ opponentId: selected.id }),
+        body: JSON.stringify({ opponentId: selected.id, danceStyle: battleStyle || undefined }),
       });
 
       const data = await res.json();
@@ -195,6 +197,33 @@ export default function NewBattlePage() {
           {error && (
             <div className="p-3 rounded-lg bg-ml-red/10 border border-ml-red/30 text-ml-red-light text-sm text-center">
               {error}
+            </div>
+          )}
+
+          {/* Dance Style Selection */}
+          {selected && (
+            <div>
+              <label className="block text-sm text-ml-gray-400 mb-2 flex items-center gap-1.5">
+                <Music className="w-4 h-4" />
+                {t("selectBattleStyle")}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {DANCE_STYLES.map((style) => (
+                  <button
+                    key={style}
+                    type="button"
+                    onClick={() => setBattleStyle(battleStyle === style ? "" : style)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                      battleStyle === style
+                        ? "bg-ml-red/20 border-ml-red/40 text-ml-red"
+                        : "bg-ml-dark-card border-ml-dark-border text-ml-gray-400 hover:border-ml-red/30"
+                    )}
+                  >
+                    {style}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 

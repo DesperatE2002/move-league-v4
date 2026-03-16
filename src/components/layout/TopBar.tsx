@@ -16,7 +16,7 @@ export default function TopBar({ userName, role }: TopBarProps) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-ml-dark/95 backdrop-blur-lg border-b border-ml-dark-border">
-      <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
+      <div className="flex items-center justify-between px-4 py-3 max-w-lg lg:max-w-full lg:pl-68 mx-auto">
         {/* Logo */}
         <a href={`/${locale}/anasayfa`} className="flex items-center gap-2">
           <img
@@ -35,7 +35,7 @@ export default function TopBar({ userName, role }: TopBarProps) {
         <div className="flex items-center gap-2">
           {role === "admin" && (
             <a
-              href={`/${locale}/yonetim`}
+              href={`/${locale}/admin`}
               className="p-2 rounded-lg text-ml-gray-400 hover:text-ml-red hover:bg-ml-dark-card transition-all"
               title={t("admin")}
             >

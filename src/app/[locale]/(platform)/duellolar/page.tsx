@@ -155,7 +155,7 @@ export default function BattlesPage() {
           </a>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
           {filteredBattles.map((battle) => {
             const st = statusConfig[battle.status] || statusConfig.pending;
             return (

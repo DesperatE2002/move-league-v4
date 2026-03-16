@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: firstError }, { status: 400 });
     }
 
-    const { opponentId } = parsed.data;
+    const { opponentId, danceStyle } = parsed.data;
     const challengerId = session.user.id;
 
     // Self-challenge check
@@ -192,6 +192,7 @@ export async function POST(req: NextRequest) {
         challengerId,
         opponentId,
         seasonId: activeSeason[0]?.id ?? null,
+        danceStyle: danceStyle || null,
         status: "pending",
       })
       .returning({

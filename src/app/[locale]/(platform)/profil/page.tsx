@@ -103,7 +103,7 @@ export default async function ProfilePage({
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-2 lg:gap-4">
         <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border p-3 text-center">
           <Trophy className="w-4 h-4 text-ml-red mx-auto mb-1" />
           <p className="text-lg font-bold text-ml-white">1000</p>

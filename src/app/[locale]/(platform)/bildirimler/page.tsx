@@ -112,7 +112,7 @@ export default function NotificationsPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
           {notifs.map((n) => {
             const battleId = (n.data as any)?.battleId;
             const Wrapper = battleId ? "a" : "div";

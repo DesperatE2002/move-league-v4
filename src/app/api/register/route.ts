@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { name, surname, username, email, password, role } = parsed.data;
+    const { name, surname, username, email, password, role, danceStyles } = parsed.data;
 
     // Check if email already exists
     const existingEmail = await db
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
         email,
         passwordHash,
         role,
+        danceStyle: danceStyles?.join(", ") || null,
       })
       .returning({
         id: users.id,
