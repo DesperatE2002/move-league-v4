@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { battles } from "@/db/schema/battles";
+import { battles, battleStudioPreferences } from "@/db/schema/battles";
 import { battleScores } from "@/db/schema/battles";
 import { users } from "@/db/schema/users";
+import { studios } from "@/db/schema/users";
 import { dancerRatings } from "@/db/schema/seasons";
 import { auth } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
 import { calculateElo } from "@/lib/elo";
 import { battleScoreSchema } from "@/lib/validators";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -60,11 +61,30 @@ export async function GET(_req: NextRequest, ctx: RouteContext) {
       .from(battleScores)
       .where(eq(battleScores.battleId, id));
 
+    // Get studio preferences
+    const studioPrefs = await db
+      .select()
+      .from(battleStudioPreferences)
+      .where(eq(battleStudioPreferences.battleId, id));
+
+    // Get assigned studio info if exists
+    let studioInfo = null;
+    if (battle.studioId) {
+      const studioArr = await db
+        .select({ id: studios.id, name: studios.name, city: studios.city, address: studios.address })
+        .from(studios)
+        .where(eq(studios.id, battle.studioId))
+        .limit(1);
+      studioInfo = studioArr[0] ?? null;
+    }
+
     return NextResponse.json({
       ...battle,
       challenger: challengerArr[0] ?? null,
       opponent: opponentArr[0] ?? null,
       scores,
+      studioPreferences: studioPrefs,
+      studio: studioInfo,
     });
   } catch (error) {
     console.error("Get battle error:", error);
@@ -105,18 +125,132 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
 
         await db
           .update(battles)
-          .set({ status: "accepted", updatedAt: new Date() })
+          .set({ status: "studio_pending", updatedAt: new Date() })
           .where(eq(battles.id, id));
 
-        await createNotification(
-          battle.challengerId,
-          "battle_accepted",
-          "Düello Kabul Edildi!",
-          `${session.user.name} düello talebinizi kabul etti!`,
-          { battleId: id }
+        // Notify both dancers to select studios
+        await Promise.all([
+          createNotification(
+            battle.challengerId,
+            "battle_accepted",
+            "Düello Kabul Edildi!",
+            `${session.user.name} düello talebinizi kabul etti! Şimdi stüdyo tercihlerinizi seçin.`,
+            { battleId: id }
+          ),
+          createNotification(
+            battle.opponentId,
+            "battle_accepted",
+            "Stüdyo Seçimi",
+            "Düello kabul edildi! Şimdi stüdyo tercihlerinizi seçin.",
+            { battleId: id }
+          ),
+        ]);
+
+        return NextResponse.json({ message: "Düello kabul edildi, stüdyo seçimi bekleniyor", status: "studio_pending" });
+      }
+
+      case "select-studios": {
+        // Both challenger and opponent can select studios
+        if (battle.challengerId !== userId && battle.opponentId !== userId) {
+          return NextResponse.json({ error: "Bu düelloda stüdyo seçimi yapamazsınız" }, { status: 403 });
+        }
+        if (battle.status !== "studio_pending") {
+          return NextResponse.json({ error: "Bu aşamada stüdyo seçimi yapılamaz" }, { status: 400 });
+        }
+
+        const { studioIds } = body as { studioIds: string[] };
+        if (!studioIds || !Array.isArray(studioIds) || studioIds.length === 0 || studioIds.length > 4) {
+          return NextResponse.json({ error: "1-4 arası stüdyo seçmelisiniz" }, { status: 400 });
+        }
+
+        // Remove old preferences for this user
+        await db.delete(battleStudioPreferences).where(
+          and(
+            eq(battleStudioPreferences.battleId, id),
+            eq(battleStudioPreferences.userId, userId)
+          )
         );
 
-        return NextResponse.json({ message: "Düello kabul edildi", status: "accepted" });
+        // Insert new preferences
+        await db.insert(battleStudioPreferences).values(
+          studioIds.map((sId, idx) => ({
+            battleId: id,
+            userId,
+            studioId: sId,
+            rank: idx + 1,
+          }))
+        );
+
+        // Check if both users have selected
+        const allPrefs = await db
+          .select()
+          .from(battleStudioPreferences)
+          .where(eq(battleStudioPreferences.battleId, id));
+
+        const challengerPrefs = allPrefs.filter((p) => p.userId === battle.challengerId);
+        const opponentPrefs = allPrefs.filter((p) => p.userId === battle.opponentId);
+
+        if (challengerPrefs.length > 0 && opponentPrefs.length > 0) {
+          // Both selected — find best matching studio
+          const cStudioIds = challengerPrefs.sort((a, b) => a.rank - b.rank).map((p) => p.studioId);
+          const oStudioIds = opponentPrefs.sort((a, b) => a.rank - b.rank).map((p) => p.studioId);
+
+          let matchedStudioId: string | null = null;
+          let bestScore = Infinity;
+
+          // Find common studio with best combined rank
+          for (let ci = 0; ci < cStudioIds.length; ci++) {
+            const oi = oStudioIds.indexOf(cStudioIds[ci]);
+            if (oi !== -1) {
+              const score = ci + oi; // lower = better
+              if (score < bestScore) {
+                bestScore = score;
+                matchedStudioId = cStudioIds[ci];
+              }
+            }
+          }
+
+          // If no common studio, pick challenger's #1
+          if (!matchedStudioId) {
+            matchedStudioId = cStudioIds[0];
+          }
+
+          // Update battle with matched studio → accepted
+          await db
+            .update(battles)
+            .set({ studioId: matchedStudioId, status: "accepted", updatedAt: new Date() })
+            .where(eq(battles.id, id));
+
+          // Get studio name for notification
+          const studioRow = await db
+            .select({ name: studios.name })
+            .from(studios)
+            .where(eq(studios.id, matchedStudioId))
+            .limit(1);
+
+          const studioName = studioRow[0]?.name || "Stüdyo";
+
+          await Promise.all([
+            createNotification(
+              battle.challengerId,
+              "battle_scheduled",
+              "Stüdyo Belirlendi!",
+              `Düellonuz için ${studioName} stüdyosu eşleştirildi.`,
+              { battleId: id }
+            ),
+            createNotification(
+              battle.opponentId,
+              "battle_scheduled",
+              "Stüdyo Belirlendi!",
+              `Düellonuz için ${studioName} stüdyosu eşleştirildi.`,
+              { battleId: id }
+            ),
+          ]);
+
+          return NextResponse.json({ message: "Stüdyo eşleştirildi!", status: "accepted", studioId: matchedStudioId });
+        }
+
+        return NextResponse.json({ message: "Stüdyo tercihleri kaydedildi. Diğer dansçının seçimi bekleniyor." });
       }
 
       case "decline": {
@@ -147,7 +281,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
         if (battle.challengerId !== userId) {
           return NextResponse.json({ error: "Sadece düelloyu başlatan iptal edebilir" }, { status: 403 });
         }
-        if (!["pending", "accepted"].includes(battle.status)) {
+        if (!["pending", "accepted", "studio_pending"].includes(battle.status)) {
           return NextResponse.json({ error: "Bu aşamada iptal edilemez" }, { status: 400 });
         }
 

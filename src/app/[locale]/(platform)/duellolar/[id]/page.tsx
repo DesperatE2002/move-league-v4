@@ -14,6 +14,8 @@ import {
   Trophy,
   Star,
   ClipboardCheck,
+  MapPin,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +41,7 @@ interface BattleDetail {
   challengerId: string;
   opponentId: string;
   judgeId: string | null;
+  studioId: string | null;
   status: string;
   scheduledDate: string | null;
   challengerScore: number | null;
@@ -49,6 +52,17 @@ interface BattleDetail {
   challenger: BattleUser | null;
   opponent: BattleUser | null;
   scores: Score[];
+  studioPreferences: { userId: string; studioId: string; rank: number }[];
+  studio: { id: string; name: string; city: string; address: string } | null;
+}
+
+interface StudioOption {
+  id: string;
+  name: string;
+  city: string;
+  country: string;
+  address: string;
+  isVerified: boolean;
 }
 
 const CATEGORIES = ["technique", "creativity", "musicality", "stagePresence"] as const;
@@ -68,6 +82,10 @@ export default function BattleDetailPage() {
   const [scoreSubmitting, setScoreSubmitting] = useState(false);
   const [scoreSuccess, setScoreSuccess] = useState(false);
   const [scoreNotes, setScoreNotes] = useState("");
+  const [allStudios, setAllStudios] = useState<StudioOption[]>([]);
+  const [selectedStudios, setSelectedStudios] = useState<string[]>([]);
+  const [studioSubmitting, setStudioSubmitting] = useState(false);
+  const [studioSuccess, setStudioSuccess] = useState(false);
   const [scores, setScores] = useState({
     challengerTechnique: 5,
     challengerCreativity: 5,
@@ -82,6 +100,52 @@ export default function BattleDetailPage() {
   useEffect(() => {
     fetchBattle();
   }, [id]);
+
+  useEffect(() => {
+    if (battle?.status === "studio_pending") {
+      fetchStudios();
+    }
+  }, [battle?.status]);
+
+  async function fetchStudios() {
+    try {
+      const res = await fetch("/api/studios");
+      if (res.ok) {
+        const data = await res.json();
+        setAllStudios(data.studios);
+      }
+    } catch {
+      // fail
+    }
+  }
+
+  async function handleSubmitStudios() {
+    if (selectedStudios.length === 0) return;
+    setStudioSubmitting(true);
+    try {
+      const res = await fetch(`/api/battles/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "select-studios", studioIds: selectedStudios }),
+      });
+      if (res.ok) {
+        setStudioSuccess(true);
+        fetchBattle();
+      }
+    } catch {
+      // fail
+    } finally {
+      setStudioSubmitting(false);
+    }
+  }
+
+  function toggleStudio(studioId: string) {
+    setSelectedStudios((prev) => {
+      if (prev.includes(studioId)) return prev.filter((s) => s !== studioId);
+      if (prev.length >= 4) return prev;
+      return [...prev, studioId];
+    });
+  }
 
   async function fetchBattle() {
     try {
@@ -345,6 +409,107 @@ export default function BattleDetailPage() {
           {t("cancelBattle")}
         </button>
       )}
+
+      {/* Studio Info (when studio is matched) */}
+      {battle.studio && (
+        <div className="bg-ml-dark-card rounded-xl border border-ml-success/30 p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-ml-success/10">
+              <Building2 className="w-5 h-5 text-ml-success" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-ml-white">{battle.studio.name}</p>
+              <p className="text-xs text-ml-gray-400 flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {battle.studio.city} — {battle.studio.address}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Studio Selection Form */}
+      {battle.status === "studio_pending" && (isChallenger || isOpponent) && (() => {
+        const myPrefs = battle.studioPreferences?.filter((p) => p.userId === userId) ?? [];
+        const hasSubmitted = myPrefs.length > 0 || studioSuccess;
+        const otherPrefs = battle.studioPreferences?.filter((p) => p.userId !== userId) ?? [];
+        const otherHasSubmitted = otherPrefs.length > 0;
+
+        if (hasSubmitted) {
+          return (
+            <div className="bg-ml-dark-card rounded-xl border border-ml-info/30 p-4 text-center">
+              <CheckCircle className="w-8 h-8 text-ml-info mx-auto mb-2" />
+              <p className="text-sm font-semibold text-ml-white">{t("studioPrefsSubmitted")}</p>
+              <p className="text-xs text-ml-gray-400 mt-1">
+                {otherHasSubmitted ? t("studioMatching") : t("studioWaitingOther")}
+              </p>
+            </div>
+          );
+        }
+
+        return (
+          <div className="bg-ml-dark-card rounded-2xl border border-ml-info/30 p-5 space-y-4">
+            <h3 className="text-base font-bold text-ml-white flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-ml-info" />
+              {t("selectStudios")}
+            </h3>
+            <p className="text-xs text-ml-gray-400">{t("selectStudiosDesc")}</p>
+
+            {allStudios.length === 0 ? (
+              <div className="flex justify-center py-4">
+                <Loader2 className="w-5 h-5 text-ml-info animate-spin" />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {allStudios.map((studio) => {
+                  const isSelected = selectedStudios.includes(studio.id);
+                  const rank = selectedStudios.indexOf(studio.id) + 1;
+                  return (
+                    <button
+                      key={studio.id}
+                      onClick={() => toggleStudio(studio.id)}
+                      className={cn(
+                        "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
+                        isSelected
+                          ? "bg-ml-info/10 border-ml-info/40"
+                          : "bg-ml-dark-hover border-ml-dark-border hover:border-ml-info/30"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0",
+                        isSelected ? "bg-ml-info text-white" : "bg-ml-dark-card text-ml-gray-500"
+                      )}>
+                        {isSelected ? rank : "-"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn("text-sm font-medium truncate", isSelected ? "text-ml-white" : "text-ml-gray-300")}>
+                          {studio.name}
+                          {studio.isVerified && <span className="ml-1 text-ml-info">✓</span>}
+                        </p>
+                        <p className="text-xs text-ml-gray-500 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {studio.city} — {studio.address}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {selectedStudios.length > 0 && (
+              <button
+                onClick={handleSubmitStudios}
+                disabled={studioSubmitting}
+                className="w-full py-3 bg-ml-info hover:bg-ml-info/80 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {studioSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                {t("submitStudios")} ({selectedStudios.length}/4)
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Judge Scoring Form */}
       {["accepted", "scheduled", "judge_assigned"].includes(battle.status) &&

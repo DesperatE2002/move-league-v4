@@ -143,7 +143,13 @@
     "draw": "Draw",
     "cancelScoring": "Cancel",
     "submitScore": "Submit Scores",
-    "scoreSubmitted": "Scores submitted successfully!"
+    "scoreSubmitted": "Scores submitted successfully!",
+    "selectStudios": "Studio Preferences",
+    "selectStudiosDesc": "Select 1-4 studios for your battle. Order matters — your first pick is your top choice.",
+    "submitStudios": "Submit Preferences",
+    "studioPrefsSubmitted": "Studio preferences saved!",
+    "studioWaitingOther": "Waiting for the other dancer's selection...",
+    "studioMatching": "Matching studio..."
   },
   "rankings": {
     "noRankings": "No rankings yet",

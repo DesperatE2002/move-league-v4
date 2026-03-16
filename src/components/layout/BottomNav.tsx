@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useParams, usePathname } from "next/navigation";
 import {
@@ -30,6 +31,25 @@ export default function BottomNav({ role }: { role: string }) {
   const params = useParams();
   const pathname = usePathname();
   const locale = params.locale as string;
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  async function fetchUnread() {
+    try {
+      const res = await fetch("/api/notifications?countOnly=1");
+      if (res.ok) {
+        const data = await res.json();
+        setUnreadCount(data.unreadCount ?? 0);
+      }
+    } catch {
+      // silent
+    }
+  }
 
   const navItems: NavItem[] = [
     {
@@ -80,6 +100,11 @@ export default function BottomNav({ role }: { role: string }) {
                 isActive && "drop-shadow-[0_0_8px_rgba(227,25,55,0.6)]"
               )}>
                 {item.icon}
+                {item.key === "notifications" && unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-ml-red text-white text-[9px] font-bold animate-pulse">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
               </div>
               <span className="text-[10px] font-medium">{t(item.key)}</span>
               {isActive && (

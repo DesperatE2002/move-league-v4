@@ -143,7 +143,13 @@
     "draw": "Berabere",
     "cancelScoring": "Vazgeç",
     "submitScore": "Puanları Gönder",
-    "scoreSubmitted": "Puanlar başarıyla kaydedildi!"
+    "scoreSubmitted": "Puanlar başarıyla kaydedildi!",
+    "selectStudios": "Stüdyo Tercihleri",
+    "selectStudiosDesc": "Düellonuz için 1-4 arası stüdyo seçin. Sıralama önemlidir — ilk tıkladığınız 1. tercihiniz olur.",
+    "submitStudios": "Tercihleri Gönder",
+    "studioPrefsSubmitted": "Stüdyo tercihleriniz kaydedildi!",
+    "studioWaitingOther": "Diğer dansçının seçimi bekleniyor...",
+    "studioMatching": "Stüdyo eşleştiriliyor..."
   },
   "rankings": {
     "noRankings": "Henüz sıralama yok",
