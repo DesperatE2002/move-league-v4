@@ -69,6 +69,7 @@ export const createWorkshopSchema = z.object({
   price: z.number().min(0).max(99999).optional(),
   currency: z.enum(["TRY", "USD", "EUR"]).optional(),
   videoUrl: z.string().url().max(500).optional(),
+  previewUrl: z.string().url().max(500).optional(),
   maxParticipants: z.number().int().min(1).max(1000).optional(),
   scheduledDate: z.string().optional(),
   durationMinutes: z.number().int().min(5).max(480).optional(),

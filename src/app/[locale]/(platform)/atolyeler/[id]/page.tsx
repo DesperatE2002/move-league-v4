@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   GraduationCap,
   Star,
@@ -13,6 +14,8 @@ import {
   Loader2,
   CheckCircle,
   Send,
+  Play,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +30,7 @@ interface WorkshopDetail {
   price: string;
   currency: string;
   videoUrl: string | null;
+  previewUrl: string | null;
   maxParticipants: number | null;
   scheduledDate: string | null;
   durationMinutes: number | null;
@@ -44,6 +48,32 @@ interface WorkshopDetail {
   }[];
 }
 
+interface ChatMessage {
+  id: string;
+  senderId: string;
+  message: string;
+  createdAt: string;
+  senderName: string;
+  senderSurname: string;
+}
+
+function getYoutubeEmbedUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes("youtube.com")) {
+      const v = u.searchParams.get("v");
+      if (v) return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v)}`;
+    }
+    if (u.hostname === "youtu.be") {
+      const v = u.pathname.slice(1);
+      if (v) return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v)}`;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 const difficultyLabels: Record<string, string> = {
   beginner: "Başlangıç",
   intermediate: "Orta",
@@ -53,6 +83,7 @@ const difficultyLabels: Record<string, string> = {
 export default function WorkshopDetailPage() {
   const t = useTranslations("workshops");
   const params = useParams();
+  const { data: session } = useSession();
   const locale = params.locale as string;
   const workshopId = params.id as string;
 
@@ -62,6 +93,13 @@ export default function WorkshopDetailPage() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewing, setReviewing] = useState(false);
+
+  // Messaging state
+  const [showChat, setShowChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchDetail();
@@ -121,6 +159,44 @@ export default function WorkshopDetailPage() {
     } finally {
       setReviewing(false);
     }
+  }
+
+  async function fetchMessages() {
+    try {
+      const res = await fetch(`/api/workshops/${workshopId}/messages`);
+      if (res.ok) {
+        const data = await res.json();
+        setChatMessages(data.messages);
+        setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+      }
+    } catch {
+      // silent
+    }
+  }
+
+  async function sendMessage() {
+    if (!chatInput.trim()) return;
+    setChatLoading(true);
+    try {
+      const res = await fetch(`/api/workshops/${workshopId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: chatInput.trim() }),
+      });
+      if (res.ok) {
+        setChatInput("");
+        fetchMessages();
+      }
+    } catch {
+      // silent
+    } finally {
+      setChatLoading(false);
+    }
+  }
+
+  function openChat() {
+    setShowChat(true);
+    fetchMessages();
   }
 
   if (loading) {
@@ -215,6 +291,28 @@ export default function WorkshopDetailPage() {
         </div>
       )}
 
+      {/* Preview Video */}
+      {workshop.previewUrl && (() => {
+        const embedUrl = getYoutubeEmbedUrl(workshop.previewUrl);
+        return embedUrl ? (
+          <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-2 border-b border-ml-dark-border">
+              <Play className="w-4 h-4 text-ml-info" />
+              <span className="text-xs font-medium text-ml-gray-300">{t("previewVideo")}</span>
+            </div>
+            <div className="aspect-video">
+              <iframe
+                src={embedUrl}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="Preview"
+              />
+            </div>
+          </div>
+        ) : null;
+      })()}
+
       {/* Price + Enroll */}
       <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border p-4 flex items-center justify-between">
         <div>
@@ -245,6 +343,64 @@ export default function WorkshopDetailPage() {
           </button>
         )}
       </div>
+
+      {/* Messaging — for video workshops, enrolled users can chat with coach */}
+      {workshop.type === "video" && isEnrolled && (
+        <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border overflow-hidden">
+          <button
+            onClick={() => showChat ? setShowChat(false) : openChat()}
+            className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-ml-info hover:bg-ml-dark-hover transition-all"
+          >
+            <MessageCircle className="w-4 h-4" />
+            {t("messageCoach")}
+          </button>
+          {showChat && (
+            <div className="border-t border-ml-dark-border">
+              <div className="h-60 overflow-y-auto p-3 space-y-2">
+                {chatMessages.length === 0 ? (
+                  <p className="text-xs text-ml-gray-500 text-center py-4">{t("noMessages")}</p>
+                ) : (
+                  chatMessages.map((msg) => {
+                    const isMine = msg.senderId === session?.user?.id;
+                    return (
+                      <div key={msg.id} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
+                        <div className={cn(
+                          "max-w-[75%] px-3 py-2 rounded-xl text-xs",
+                          isMine
+                            ? "bg-ml-info/20 text-ml-info"
+                            : "bg-ml-dark-hover text-ml-gray-300"
+                        )}>
+                          {!isMine && (
+                            <p className="text-[10px] font-semibold text-ml-gray-400 mb-0.5">{msg.senderName}</p>
+                          )}
+                          <p>{msg.message}</p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                <div ref={chatEndRef} />
+              </div>
+              <div className="flex items-center gap-2 p-3 border-t border-ml-dark-border">
+                <input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
+                  placeholder={t("messagePlaceholder")}
+                  className="flex-1 px-3 py-2 bg-ml-dark border border-ml-dark-border rounded-lg text-sm text-ml-white placeholder:text-ml-gray-500 focus:outline-none focus:ring-1 focus:ring-ml-info"
+                />
+                <button
+                  onClick={sendMessage}
+                  disabled={chatLoading || !chatInput.trim()}
+                  className="p-2 bg-ml-info/20 text-ml-info rounded-lg hover:bg-ml-info/30 transition-all disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Reviews */}
       <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border p-4 space-y-3">

@@ -131,6 +131,7 @@ export async function POST(req: NextRequest) {
         price: data.price ? String(data.price) : "0",
         currency: data.currency || "TRY",
         videoUrl: data.videoUrl || null,
+        previewUrl: data.previewUrl || null,
         maxParticipants: data.maxParticipants || null,
         scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
         durationMinutes: data.durationMinutes || null,

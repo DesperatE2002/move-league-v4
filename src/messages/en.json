@@ -174,7 +174,11 @@
     "filterCountry": "Country filter...",
     "filterCity": "City filter...",
     "applyFilters": "Apply",
-    "clearFilters": "Clear"
+    "clearFilters": "Clear",
+    "dancer": "Dancer",
+    "record": "Battles",
+    "wl": "W/L",
+    "ratingLabel": "Rating"
   },
   "notif": {
     "markAllRead": "Mark All Read",
@@ -260,6 +264,13 @@
     "maxParticipants": "Max Participants",
     "scheduledDate": "Date",
     "videoUrl": "Video URL",
+    "previewUrl": "Preview Video URL",
+    "previewUrlHint": "A short preview video like YouTube. Shown to users who click your workshop card.",
+    "previewVideo": "Preview Video",
+    "messageCoach": "Message Coach",
+    "noMessages": "No messages yet. Send the first one!",
+    "messagePlaceholder": "Type your message...",
+    "coachOnly": "Only coaches can create.",
     "createBtn": "Create"
   },
   "teams": {
@@ -284,6 +295,7 @@
     "description": "Description",
     "city": "City",
     "country": "Country",
+    "coachOnly": "Only coaches can create teams.",
     "createTeamBtn": "Create"
   },
   "competitions": {

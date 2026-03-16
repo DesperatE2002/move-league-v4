@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Users, Plus, Loader2, MapPin } from "lucide-react";
 
 interface TeamItem {
@@ -19,8 +20,10 @@ interface TeamItem {
 export default function TeamsPage() {
   const t = useTranslations("teams");
   const tNav = useTranslations("nav");
+  const { data: session } = useSession();
   const params = useParams();
   const locale = params.locale as string;
+  const isCoach = session?.user?.role === "coach" || session?.user?.role === "admin";
 
   const [teams, setTeams] = useState<TeamItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,13 +47,15 @@ export default function TeamsPage() {
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-ml-white">{tNav("teams")}</h1>
-        <a
-          href={`/${locale}/takimlar/olustur`}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-purple-600/20 active:scale-[0.97]"
-        >
-          <Plus className="w-4 h-4" />
-          {t("createTeam")}
-        </a>
+        {isCoach && (
+          <a
+            href={`/${locale}/takimlar/olustur`}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-purple-600/20 active:scale-[0.97]"
+          >
+            <Plus className="w-4 h-4" />
+            {t("createTeam")}
+          </a>
+        )}
       </div>
 
       {loading ? (

@@ -3,13 +3,17 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { Users, ArrowLeft, Loader2, Check } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Users, ArrowLeft, Loader2, Check, ShieldX } from "lucide-react";
 
 export default function CreateTeamPage() {
   const t = useTranslations("teams");
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const locale = params.locale as string;
+
+  const isCoach = session?.user?.role === "coach" || session?.user?.role === "admin";
 
   const [form, setForm] = useState({
     name: "",
@@ -50,6 +54,15 @@ export default function CreateTeamPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!isCoach) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 animate-fade-in">
+        <ShieldX className="w-12 h-12 text-ml-gray-500 mb-4" />
+        <p className="text-ml-gray-400 text-sm">{t("coachOnly")}</p>
+      </div>
+    );
   }
 
   if (success) {

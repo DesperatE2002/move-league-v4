@@ -42,6 +42,7 @@ export const workshops = pgTable("workshops", {
   currency: workshopCurrencyEnum("currency").default("TRY"),
   thumbnailUrl: text("thumbnail_url"),
   videoUrl: text("video_url"),
+  previewUrl: text("preview_url"),
   maxParticipants: integer("max_participants"),
   scheduledDate: timestamp("scheduled_date"),
   durationMinutes: integer("duration_minutes"),
@@ -77,7 +78,23 @@ export const workshopReviews = pgTable("workshop_reviews", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const workshopMessages = pgTable("workshop_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  workshopId: uuid("workshop_id")
+    .references(() => workshops.id)
+    .notNull(),
+  senderId: uuid("sender_id")
+    .references(() => users.id)
+    .notNull(),
+  receiverId: uuid("receiver_id")
+    .references(() => users.id)
+    .notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export type Workshop = typeof workshops.$inferSelect;
 export type NewWorkshop = typeof workshops.$inferInsert;
 export type WorkshopEnrollment = typeof workshopEnrollments.$inferSelect;
 export type WorkshopReview = typeof workshopReviews.$inferSelect;
+export type WorkshopMessage = typeof workshopMessages.$inferSelect;

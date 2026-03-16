@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { GraduationCap, ArrowLeft, Loader2, Check } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { GraduationCap, ArrowLeft, Loader2, Check, ShieldX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DANCE_STYLES } from "@/lib/dance-styles";
 
@@ -11,7 +12,10 @@ export default function CreateWorkshopPage() {
   const t = useTranslations("workshops");
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const locale = params.locale as string;
+
+  const isCoach = session?.user?.role === "coach" || session?.user?.role === "admin";
 
   const [form, setForm] = useState({
     title: "",
@@ -25,6 +29,7 @@ export default function CreateWorkshopPage() {
     maxParticipants: "",
     scheduledDate: "",
     durationMinutes: "",
+    previewUrl: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -49,6 +54,7 @@ export default function CreateWorkshopPage() {
       if (form.difficulty) body.difficulty = form.difficulty;
       if (form.price > 0) { body.price = form.price; body.currency = form.currency; }
       if (form.videoUrl) body.videoUrl = form.videoUrl;
+      if (form.previewUrl) body.previewUrl = form.previewUrl;
       if (form.maxParticipants) body.maxParticipants = Number(form.maxParticipants);
       if (form.scheduledDate) body.scheduledDate = form.scheduledDate;
       if (form.durationMinutes) body.durationMinutes = Number(form.durationMinutes);
@@ -71,6 +77,15 @@ export default function CreateWorkshopPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!isCoach) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 animate-fade-in">
+        <ShieldX className="w-12 h-12 text-ml-gray-500 mb-4" />
+        <p className="text-ml-gray-400 text-sm">{t("coachOnly")}</p>
+      </div>
+    );
   }
 
   if (success) {
@@ -254,6 +269,19 @@ export default function CreateWorkshopPage() {
               />
             </div>
           )}
+
+          {/* Preview URL — always shown */}
+          <div>
+            <label className="block text-xs text-ml-gray-400 mb-1">{t("previewUrl")}</label>
+            <input
+              type="url"
+              value={form.previewUrl}
+              onChange={(e) => updateField("previewUrl", e.target.value)}
+              placeholder="https://youtube.com/watch?v=..."
+              className="w-full px-3 py-2 bg-ml-dark border border-ml-dark-border rounded-lg text-ml-white text-sm focus:border-ml-info focus:ring-1 focus:ring-ml-info transition-all outline-none"
+            />
+            <p className="text-[10px] text-ml-gray-500 mt-1">{t("previewUrlHint")}</p>
+          </div>
 
           {form.type === "video" && (
             <div>

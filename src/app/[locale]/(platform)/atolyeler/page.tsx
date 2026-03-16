@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   GraduationCap,
   Plus,
@@ -40,8 +41,10 @@ const difficultyColors: Record<string, string> = {
 export default function WorkshopsPage() {
   const t = useTranslations("workshops");
   const tNav = useTranslations("nav");
+  const { data: session } = useSession();
   const params = useParams();
   const locale = params.locale as string;
+  const isCoach = session?.user?.role === "coach" || session?.user?.role === "admin";
 
   const [workshops, setWorkshops] = useState<WorkshopItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,13 +74,15 @@ export default function WorkshopsPage() {
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-ml-white">{tNav("workshops")}</h1>
-        <a
-          href={`/${locale}/atolyeler/olustur`}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-ml-info hover:bg-ml-info/80 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-ml-info/20 active:scale-[0.97]"
-        >
-          <Plus className="w-4 h-4" />
-          {t("create")}
-        </a>
+        {isCoach && (
+          <a
+            href={`/${locale}/atolyeler/olustur`}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-ml-info hover:bg-ml-info/80 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-ml-info/20 active:scale-[0.97]"
+          >
+            <Plus className="w-4 h-4" />
+            {t("create")}
+          </a>
+        )}
       </div>
 
       {/* Style Filter */}
