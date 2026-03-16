@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Trophy, Loader2, TrendingUp, Medal } from "lucide-react";
+import { Trophy, Loader2, TrendingUp, Medal, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface RankedUser {
@@ -28,14 +28,22 @@ export default function RankingsPage() {
 
   const [rankings, setRankings] = useState<RankedUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterCountry, setFilterCountry] = useState("");
+  const [filterCity, setFilterCity] = useState("");
 
   useEffect(() => {
     fetchRankings();
   }, []);
 
-  async function fetchRankings() {
+  async function fetchRankings(country?: string, city?: string) {
+    setLoading(true);
     try {
-      const res = await fetch("/api/rankings");
+      const params = new URLSearchParams();
+      if (country) params.set("country", country);
+      if (city) params.set("city", city);
+      const qs = params.toString();
+      const res = await fetch(`/api/rankings${qs ? `?${qs}` : ""}`);
       if (res.ok) {
         const data = await res.json();
         setRankings(data.rankings);
@@ -47,14 +55,75 @@ export default function RankingsPage() {
     }
   }
 
+  function applyFilters() {
+    fetchRankings(filterCountry || undefined, filterCity || undefined);
+    setShowFilters(false);
+  }
+
+  function clearFilters() {
+    setFilterCountry("");
+    setFilterCity("");
+    fetchRankings();
+    setShowFilters(false);
+  }
+
+  const hasActiveFilters = filterCountry || filterCity;
+
   const medalColors = ["text-ml-gold", "text-ml-silver", "text-ml-bronze"];
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center gap-2">
-        <Trophy className="w-5 h-5 text-ml-gold" />
-        <h1 className="text-xl font-bold text-ml-white">{tNav("rankings")}</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Trophy className="w-5 h-5 text-ml-gold" />
+          <h1 className="text-xl font-bold text-ml-white">{tNav("rankings")}</h1>
+        </div>
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className={cn(
+            "p-2 rounded-lg transition-all",
+            hasActiveFilters
+              ? "bg-ml-red/20 text-ml-red"
+              : "bg-ml-dark-card text-ml-gray-400 hover:text-ml-white"
+          )}
+        >
+          <Filter className="w-5 h-5" />
+        </button>
       </div>
+
+      {/* Filter Panel */}
+      {showFilters && (
+        <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-ml-white">{t("filters")}</h3>
+            {hasActiveFilters && (
+              <button onClick={clearFilters} className="text-xs text-ml-red flex items-center gap-1">
+                <X className="w-3 h-3" /> {t("clearFilters")}
+              </button>
+            )}
+          </div>
+          <input
+            type="text"
+            value={filterCountry}
+            onChange={(e) => setFilterCountry(e.target.value)}
+            placeholder={t("filterCountry")}
+            className="w-full bg-ml-dark-hover border border-ml-dark-border rounded-lg px-3 py-2 text-sm text-ml-white placeholder:text-ml-gray-500 focus:outline-none focus:ring-2 focus:ring-ml-gold/40"
+          />
+          <input
+            type="text"
+            value={filterCity}
+            onChange={(e) => setFilterCity(e.target.value)}
+            placeholder={t("filterCity")}
+            className="w-full bg-ml-dark-hover border border-ml-dark-border rounded-lg px-3 py-2 text-sm text-ml-white placeholder:text-ml-gray-500 focus:outline-none focus:ring-2 focus:ring-ml-gold/40"
+          />
+          <button
+            onClick={applyFilters}
+            className="w-full py-2 bg-ml-gold hover:bg-ml-gold/80 text-black font-semibold rounded-lg text-sm"
+          >
+            {t("applyFilters")}
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-12">

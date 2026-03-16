@@ -93,7 +93,8 @@
     "viewRankings": "Sıralama Tablosu",
     "browseWorkshops": "Atölyelere Göz At",
     "recentBattles": "Son Düellolar",
-    "topDancers": "En İyi Dansçılar"
+    "topDancers": "En İyi Dansçılar",
+    "adminDesc": "Düello, sezon ve kullanıcı yönetimi"
   },
   "battles": {
     "all": "Tümü",
@@ -133,15 +134,66 @@
     "status_in_progress": "Düello devam ediyor",
     "status_studio_pending": "Stüdyo onayı bekleniyor",
     "status_studio_approved": "Stüdyo onaylandı",
-    "status_studio_rejected": "Stüdyo reddetti"
+    "status_studio_rejected": "Stüdyo reddetti",
+    "startScoring": "Puanlama Yap",
+    "scoringForm": "Hakem Puanlama Formu",
+    "total": "Toplam",
+    "judgeNotes": "Hakem notları (opsiyonel)",
+    "predictedWinner": "Tahmini Kazanan",
+    "draw": "Berabere",
+    "cancelScoring": "Vazgeç",
+    "submitScore": "Puanları Gönder",
+    "scoreSubmitted": "Puanlar başarıyla kaydedildi!"
   },
   "rankings": {
     "noRankings": "Henüz sıralama yok",
-    "noRankingsDesc": "Aktif sezon başladığında ve düellolar tamamlandığında sıralama tablosu burada görünecek."
+    "noRankingsDesc": "Aktif sezon başladığında ve düellolar tamamlandığında sıralama tablosu burada görünecek.",
+    "filters": "Filtreler",
+    "filterCountry": "Ülke filtresi...",
+    "filterCity": "Şehir filtresi...",
+    "applyFilters": "Filtrele",
+    "clearFilters": "Temizle"
   },
   "notif": {
     "markAllRead": "Tümünü Okundu Yap",
     "noNotifs": "Bildirim Yok",
     "noNotifsDesc": "Henüz bildiriminiz bulunmuyor. Düello etkinlikleri başladığında bildirimler burada görünecek."
+  },
+  "admin": {
+    "title": "Yönetim Paneli",
+    "noAccess": "Bu sayfaya erişim yetkiniz yok.",
+    "totalUsers": "Toplam Kullanıcı",
+    "totalBattles": "Toplam Düello",
+    "completedBattles": "Tamamlanan",
+    "activeSeason": "Aktif Sezon",
+    "battleManagement": "Düello Yönetimi",
+    "battleManagementDesc": "Düello planla, hakem ata, puanla",
+    "seasonManagement": "Sezon Yönetimi",
+    "seasonManagementDesc": "Sezonları oluştur ve yönet",
+    "badgeManagement": "Rozet Yönetimi",
+    "badgeManagementDesc": "Rozetleri oluştur ve yönet",
+    "userManagement": "Kullanıcı Yönetimi",
+    "userManagementDesc": "Rolleri düzenle ve kullanıcıları yönet",
+    "noBattlesInStatus": "Bu durumda düello yok.",
+    "selectJudge": "Hakem Seç",
+    "assignJudge": "Hakem Ata",
+    "schedule": "Planla",
+    "detail": "Detay",
+    "newSeason": "Yeni Sezon",
+    "seasonName": "Sezon adı",
+    "startDate": "Başlangıç",
+    "endDate": "Bitiş",
+    "createSeason": "Sezon Oluştur",
+    "noSeasons": "Henüz sezon oluşturulmadı.",
+    "active": "Aktif",
+    "newBadge": "Yeni Rozet",
+    "badgeNameTr": "Rozet adı (TR)",
+    "badgeNameEn": "Rozet adı (EN)",
+    "badgeDescTr": "Açıklama (TR)",
+    "badgeDescEn": "Açıklama (EN)",
+    "createBadge": "Rozet Oluştur",
+    "noBadges": "Henüz rozet oluşturulmadı.",
+    "searchUsers": "Kullanıcı ara...",
+    "role": "Rol"
   }
 }

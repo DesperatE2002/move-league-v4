@@ -93,7 +93,8 @@
     "viewRankings": "View Rankings",
     "browseWorkshops": "Browse Workshops",
     "recentBattles": "Recent Battles",
-    "topDancers": "Top Dancers"
+    "topDancers": "Top Dancers",
+    "adminDesc": "Battle, season and user management"
   },
   "battles": {
     "all": "All",
@@ -133,15 +134,66 @@
     "status_in_progress": "Battle in progress",
     "status_studio_pending": "Waiting for studio approval",
     "status_studio_approved": "Studio approved",
-    "status_studio_rejected": "Studio rejected"
+    "status_studio_rejected": "Studio rejected",
+    "startScoring": "Start Scoring",
+    "scoringForm": "Judge Scoring Form",
+    "total": "Total",
+    "judgeNotes": "Judge notes (optional)",
+    "predictedWinner": "Predicted Winner",
+    "draw": "Draw",
+    "cancelScoring": "Cancel",
+    "submitScore": "Submit Scores",
+    "scoreSubmitted": "Scores submitted successfully!"
   },
   "rankings": {
     "noRankings": "No rankings yet",
-    "noRankingsDesc": "Rankings will appear here once the active season starts and battles are completed."
+    "noRankingsDesc": "Rankings will appear here once the active season starts and battles are completed.",
+    "filters": "Filters",
+    "filterCountry": "Country filter...",
+    "filterCity": "City filter...",
+    "applyFilters": "Apply",
+    "clearFilters": "Clear"
   },
   "notif": {
     "markAllRead": "Mark All Read",
     "noNotifs": "No Notifications",
     "noNotifsDesc": "You have no notifications yet. They will appear here when battle activities begin."
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "noAccess": "You don't have access to this page.",
+    "totalUsers": "Total Users",
+    "totalBattles": "Total Battles",
+    "completedBattles": "Completed",
+    "activeSeason": "Active Season",
+    "battleManagement": "Battle Management",
+    "battleManagementDesc": "Schedule battles, assign judges, score",
+    "seasonManagement": "Season Management",
+    "seasonManagementDesc": "Create and manage seasons",
+    "badgeManagement": "Badge Management",
+    "badgeManagementDesc": "Create and manage badges",
+    "userManagement": "User Management",
+    "userManagementDesc": "Edit roles and manage users",
+    "noBattlesInStatus": "No battles in this status.",
+    "selectJudge": "Select Judge",
+    "assignJudge": "Assign Judge",
+    "schedule": "Schedule",
+    "detail": "Detail",
+    "newSeason": "New Season",
+    "seasonName": "Season name",
+    "startDate": "Start",
+    "endDate": "End",
+    "createSeason": "Create Season",
+    "noSeasons": "No seasons created yet.",
+    "active": "Active",
+    "newBadge": "New Badge",
+    "badgeNameTr": "Badge name (TR)",
+    "badgeNameEn": "Badge name (EN)",
+    "badgeDescTr": "Description (TR)",
+    "badgeDescEn": "Description (EN)",
+    "createBadge": "Create Badge",
+    "noBadges": "No badges created yet.",
+    "searchUsers": "Search users...",
+    "role": "Role"
   }
 }

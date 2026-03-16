@@ -13,6 +13,7 @@ import {
   Clock,
   Trophy,
   Star,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +38,7 @@ interface BattleDetail {
   id: string;
   challengerId: string;
   opponentId: string;
+  judgeId: string | null;
   status: string;
   scheduledDate: string | null;
   challengerScore: number | null;
@@ -49,6 +51,8 @@ interface BattleDetail {
   scores: Score[];
 }
 
+const CATEGORIES = ["technique", "creativity", "musicality", "stagePresence"] as const;
+
 export default function BattleDetailPage() {
   const t = useTranslations("battles");
   const params = useParams();
@@ -60,6 +64,20 @@ export default function BattleDetailPage() {
   const [battle, setBattle] = useState<BattleDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showScoreForm, setShowScoreForm] = useState(false);
+  const [scoreSubmitting, setScoreSubmitting] = useState(false);
+  const [scoreSuccess, setScoreSuccess] = useState(false);
+  const [scoreNotes, setScoreNotes] = useState("");
+  const [scores, setScores] = useState({
+    challengerTechnique: 5,
+    challengerCreativity: 5,
+    challengerMusicality: 5,
+    challengerStagePresence: 5,
+    opponentTechnique: 5,
+    opponentCreativity: 5,
+    opponentMusicality: 5,
+    opponentStagePresence: 5,
+  });
 
   useEffect(() => {
     fetchBattle();
@@ -96,6 +114,33 @@ export default function BattleDetailPage() {
       setActionLoading(false);
     }
   }
+
+  async function handleSubmitScore() {
+    setScoreSubmitting(true);
+    try {
+      const res = await fetch(`/api/battles/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...scores, notes: scoreNotes || undefined }),
+      });
+      if (res.ok) {
+        setScoreSuccess(true);
+        setShowScoreForm(false);
+        fetchBattle();
+      }
+    } catch {
+      // fail
+    } finally {
+      setScoreSubmitting(false);
+    }
+  }
+
+  function updateScore(key: keyof typeof scores, value: number) {
+    setScores((prev) => ({ ...prev, [key]: Math.min(10, Math.max(1, value)) }));
+  }
+
+  const challengerTotal = scores.challengerTechnique + scores.challengerCreativity + scores.challengerMusicality + scores.challengerStagePresence;
+  const opponentTotal = scores.opponentTechnique + scores.opponentCreativity + scores.opponentMusicality + scores.opponentStagePresence;
 
   if (loading) {
     return (
@@ -299,6 +344,125 @@ export default function BattleDetailPage() {
           {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
           {t("cancelBattle")}
         </button>
+      )}
+
+      {/* Judge Scoring Form */}
+      {["accepted", "scheduled", "judge_assigned"].includes(battle.status) &&
+        (session?.user?.role === "admin" || battle.judgeId === userId) &&
+        !scoreSuccess && (
+        <div className="space-y-4">
+          {!showScoreForm ? (
+            <button
+              onClick={() => setShowScoreForm(true)}
+              className="w-full py-3 bg-ml-gold hover:bg-ml-gold/80 text-black font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+            >
+              <ClipboardCheck className="w-5 h-5" />
+              {t("startScoring")}
+            </button>
+          ) : (
+            <div className="bg-ml-dark-card rounded-2xl border border-ml-gold/30 p-5 space-y-5">
+              <h3 className="text-base font-bold text-ml-white flex items-center gap-2">
+                <ClipboardCheck className="w-5 h-5 text-ml-gold" />
+                {t("scoringForm")}
+              </h3>
+
+              {/* Challenger Scores */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-ml-red">
+                  {battle.challenger?.name} {battle.challenger?.surname}
+                </p>
+                {CATEGORIES.map((cat) => {
+                  const key = `challenger${cat[0].toUpperCase()}${cat.slice(1)}` as keyof typeof scores;
+                  return (
+                    <div key={key} className="flex items-center justify-between">
+                      <span className="text-xs text-ml-gray-400 w-28">{t(cat)}</span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => updateScore(key, scores[key] - 1)} className="w-7 h-7 rounded-lg bg-ml-dark-hover text-ml-gray-300 flex items-center justify-center text-sm font-bold hover:bg-ml-red/20">−</button>
+                        <span className="w-8 text-center text-sm font-bold text-ml-white">{scores[key]}</span>
+                        <button onClick={() => updateScore(key, scores[key] + 1)} className="w-7 h-7 rounded-lg bg-ml-dark-hover text-ml-gray-300 flex items-center justify-center text-sm font-bold hover:bg-ml-success/20">+</button>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="text-right text-sm font-bold text-ml-red">
+                  {t("total")}: {challengerTotal}/40
+                </div>
+              </div>
+
+              <div className="border-t border-ml-dark-border" />
+
+              {/* Opponent Scores */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-ml-info">
+                  {battle.opponent?.name} {battle.opponent?.surname}
+                </p>
+                {CATEGORIES.map((cat) => {
+                  const key = `opponent${cat[0].toUpperCase()}${cat.slice(1)}` as keyof typeof scores;
+                  return (
+                    <div key={key} className="flex items-center justify-between">
+                      <span className="text-xs text-ml-gray-400 w-28">{t(cat)}</span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => updateScore(key, scores[key] - 1)} className="w-7 h-7 rounded-lg bg-ml-dark-hover text-ml-gray-300 flex items-center justify-center text-sm font-bold hover:bg-ml-red/20">−</button>
+                        <span className="w-8 text-center text-sm font-bold text-ml-white">{scores[key]}</span>
+                        <button onClick={() => updateScore(key, scores[key] + 1)} className="w-7 h-7 rounded-lg bg-ml-dark-hover text-ml-gray-300 flex items-center justify-center text-sm font-bold hover:bg-ml-success/20">+</button>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="text-right text-sm font-bold text-ml-info">
+                  {t("total")}: {opponentTotal}/40
+                </div>
+              </div>
+
+              <div className="border-t border-ml-dark-border" />
+
+              {/* Notes */}
+              <textarea
+                value={scoreNotes}
+                onChange={(e) => setScoreNotes(e.target.value)}
+                placeholder={t("judgeNotes")}
+                className="w-full bg-ml-dark-hover border border-ml-dark-border rounded-xl px-4 py-3 text-sm text-ml-white placeholder:text-ml-gray-500 focus:outline-none focus:ring-2 focus:ring-ml-gold/40 resize-none"
+                rows={2}
+              />
+
+              {/* Preview */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-ml-dark-hover">
+                <span className="text-xs text-ml-gray-400">{t("predictedWinner")}:</span>
+                <span className="text-sm font-bold text-ml-white">
+                  {challengerTotal > opponentTotal
+                    ? `${battle.challenger?.name} (${challengerTotal}-${opponentTotal})`
+                    : challengerTotal < opponentTotal
+                      ? `${battle.opponent?.name} (${opponentTotal}-${challengerTotal})`
+                      : t("draw")}
+                </span>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowScoreForm(false)}
+                  className="flex-1 py-3 bg-ml-dark-hover text-ml-gray-300 font-semibold rounded-xl"
+                >
+                  {t("cancelScoring")}
+                </button>
+                <button
+                  onClick={handleSubmitScore}
+                  disabled={scoreSubmitting}
+                  className="flex-1 py-3 bg-ml-gold hover:bg-ml-gold/80 text-black font-semibold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {scoreSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                  {t("submitScore")}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {scoreSuccess && (
+        <div className="bg-ml-success/10 border border-ml-success/30 rounded-xl p-4 text-center">
+          <CheckCircle className="w-8 h-8 text-ml-success mx-auto mb-2" />
+          <p className="text-sm font-semibold text-ml-success">{t("scoreSubmitted")}</p>
+        </div>
       )}
 
       <p className="text-xs text-ml-gray-500 text-center">
