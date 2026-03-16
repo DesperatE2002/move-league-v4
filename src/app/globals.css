@@ -39,7 +39,7 @@
 body {
   background: #0A0A0A;
   color: #F5F5F5;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter, 'Inter', system-ui, -apple-system, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

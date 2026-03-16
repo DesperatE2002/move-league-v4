@@ -2,6 +2,12 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { Inter } from "next/font/google";
+
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
 
 type Props = {
   children: React.ReactNode;
@@ -23,7 +29,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={inter.className}>
       <body className="bg-ml-black text-ml-gray-100 antialiased">
         <NextIntlClientProvider messages={messages}>
           {children}
