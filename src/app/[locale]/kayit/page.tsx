@@ -1,0 +1,255 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  AtSign,
+  Loader2,
+  ChevronDown,
+} from "lucide-react";
+
+const ROLES = ["dancer", "coach", "studio", "judge"] as const;
+
+export default function RegisterPage() {
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
+  const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
+
+  const [form, setForm] = useState({
+    name: "",
+    surname: "",
+    username: "",
+    email: "",
+    password: "",
+    role: "dancer" as string,
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const updateField = (field: string, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || t("registerError"));
+      } else {
+        setSuccess(t("registerSuccess"));
+        setTimeout(() => router.push(`/${locale}/giris`), 2000);
+      }
+    } catch {
+      setError(tCommon("error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-ml-black px-4 py-8">
+      {/* Logo */}
+      <div className="mb-6 animate-fade-in">
+        <img
+          src="/logo.png"
+          alt="Move League"
+          width={140}
+          height={140}
+          className="mx-auto rounded-xl"
+        />
+      </div>
+
+      {/* Register Form */}
+      <div className="w-full max-w-sm animate-fade-in">
+        <div className="bg-ml-dark rounded-2xl border border-ml-dark-border p-6 shadow-2xl shadow-ml-red/5">
+          <h1 className="text-2xl font-bold text-center text-ml-white mb-6">
+            {t("register")}
+          </h1>
+
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-ml-red/10 border border-ml-red/30 text-ml-red-light text-sm text-center">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-4 p-3 rounded-lg bg-ml-success/10 border border-ml-success/30 text-ml-success text-sm text-center">
+              {success}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {/* Name & Surname */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm text-ml-gray-400 mb-1">
+                  {t("name")}
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ml-gray-500" />
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => updateField("name", e.target.value)}
+                    required
+                    className="w-full pl-10 pr-3 py-2.5 bg-ml-dark-card border border-ml-dark-border rounded-xl text-ml-white placeholder:text-ml-gray-500 focus:border-ml-red focus:ring-1 focus:ring-ml-red transition-all outline-none text-sm"
+                    placeholder="Ad"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-ml-gray-400 mb-1">
+                  {t("surname")}
+                </label>
+                <input
+                  type="text"
+                  value={form.surname}
+                  onChange={(e) => updateField("surname", e.target.value)}
+                  required
+                  className="w-full px-3 py-2.5 bg-ml-dark-card border border-ml-dark-border rounded-xl text-ml-white placeholder:text-ml-gray-500 focus:border-ml-red focus:ring-1 focus:ring-ml-red transition-all outline-none text-sm"
+                  placeholder="Soyad"
+                />
+              </div>
+            </div>
+
+            {/* Username */}
+            <div>
+              <label className="block text-sm text-ml-gray-400 mb-1">
+                {t("username")}
+              </label>
+              <div className="relative">
+                <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ml-gray-500" />
+                <input
+                  type="text"
+                  value={form.username}
+                  onChange={(e) => updateField("username", e.target.value)}
+                  required
+                  className="w-full pl-10 pr-3 py-2.5 bg-ml-dark-card border border-ml-dark-border rounded-xl text-ml-white placeholder:text-ml-gray-500 focus:border-ml-red focus:ring-1 focus:ring-ml-red transition-all outline-none text-sm"
+                  placeholder="kullanici_adi"
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm text-ml-gray-400 mb-1">
+                {t("email")}
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ml-gray-500" />
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => updateField("email", e.target.value)}
+                  required
+                  className="w-full pl-10 pr-3 py-2.5 bg-ml-dark-card border border-ml-dark-border rounded-xl text-ml-white placeholder:text-ml-gray-500 focus:border-ml-red focus:ring-1 focus:ring-ml-red transition-all outline-none text-sm"
+                  placeholder="ornek@email.com"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm text-ml-gray-400 mb-1">
+                {t("password")}
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ml-gray-500" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={form.password}
+                  onChange={(e) => updateField("password", e.target.value)}
+                  required
+                  className="w-full pl-10 pr-12 py-2.5 bg-ml-dark-card border border-ml-dark-border rounded-xl text-ml-white placeholder:text-ml-gray-500 focus:border-ml-red focus:ring-1 focus:ring-ml-red transition-all outline-none text-sm"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ml-gray-500 hover:text-ml-gray-300 transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-ml-gray-500 mt-1">
+                Min 8 karakter, 1 büyük harf, 1 rakam
+              </p>
+            </div>
+
+            {/* Role */}
+            <div>
+              <label className="block text-sm text-ml-gray-400 mb-1">
+                {t("selectRole")}
+              </label>
+              <div className="relative">
+                <select
+                  value={form.role}
+                  onChange={(e) => updateField("role", e.target.value)}
+                  className="w-full px-3 py-2.5 bg-ml-dark-card border border-ml-dark-border rounded-xl text-ml-white focus:border-ml-red focus:ring-1 focus:ring-ml-red transition-all outline-none text-sm appearance-none cursor-pointer"
+                >
+                  {ROLES.map((role) => (
+                    <option key={role} value={role}>
+                      {t(`roles.${role}`)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ml-gray-500 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-ml-red hover:bg-ml-red-light text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-ml-red/20 hover:shadow-ml-red/40 active:scale-[0.98] mt-2"
+            >
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+              ) : (
+                t("register")
+              )}
+            </button>
+          </form>
+
+          {/* Login link */}
+          <p className="mt-5 text-center text-sm text-ml-gray-400">
+            {t("hasAccount")}{" "}
+            <a
+              href={`/${locale}/giris`}
+              className="text-ml-red hover:text-ml-red-light font-medium transition-colors"
+            >
+              {t("login")}
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
