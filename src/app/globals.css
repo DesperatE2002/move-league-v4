@@ -30,45 +30,41 @@
   --color-ml-info: #3B82F6;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@layer base {
+  body {
+    background: #0A0A0A;
+    color: #F5F5F5;
+    font-family: var(--font-inter, 'Inter', system-ui, -apple-system, sans-serif);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-body {
-  background: #0A0A0A;
-  color: #F5F5F5;
-  font-family: var(--font-inter, 'Inter', system-ui, -apple-system, sans-serif);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #111111;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #E31937;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #FF2D4B;
+  }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #111111;
-}
-::-webkit-scrollbar-thumb {
-  background: #E31937;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #FF2D4B;
-}
+  /* Selection */
+  ::selection {
+    background: #E31937;
+    color: white;
+  }
 
-/* Selection */
-::selection {
-  background: #E31937;
-  color: white;
-}
-
-/* Focus ring */
-*:focus-visible {
-  outline: 2px solid #E31937;
-  outline-offset: 2px;
+  /* Focus ring */
+  *:focus-visible {
+    outline: 2px solid #E31937;
+    outline-offset: 2px;
+  }
 }
 
 /* Glow animation for key elements */
