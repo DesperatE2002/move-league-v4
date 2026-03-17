@@ -279,7 +279,8 @@
     "noMessages": "Henüz mesaj yok. İlk mesajı gönderin!",
     "messagePlaceholder": "Mesajınızı yazın...",
     "coachOnly": "Sadece antrenörler oluşturabilir.",
-    "createBtn": "Oluştur"
+    "createBtn": "Oluştur",
+    "manage": "Yönet"
   },
   "teams": {
     "createTeam": "Takım Oluştur",

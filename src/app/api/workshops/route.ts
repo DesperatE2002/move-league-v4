@@ -19,6 +19,8 @@ export async function GET(req: NextRequest) {
     const difficulty = searchParams.get("difficulty");
     const type = searchParams.get("type");
 
+    const now = new Date();
+
     let query = db
       .select({
         id: workshops.id,
@@ -43,6 +45,8 @@ export async function GET(req: NextRequest) {
         and(
           eq(workshops.isPublished, true),
           eq(workshops.isApproved, true),
+          // Hide expired live workshops (scheduledDate in the past)
+          sql`(${workshops.type} = 'video' OR ${workshops.scheduledDate} IS NULL OR ${workshops.scheduledDate} >= ${now})`,
           style ? eq(workshops.danceStyle, style) : undefined,
           difficulty ? sql`${workshops.difficulty} = ${difficulty}` : undefined,
           type ? sql`${workshops.type} = ${type}` : undefined

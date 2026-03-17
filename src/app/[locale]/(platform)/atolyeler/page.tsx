@@ -12,6 +12,7 @@ import {
   Users,
   Clock,
   Filter,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DANCE_STYLES } from "@/lib/dance-styles";
@@ -75,13 +76,22 @@ export default function WorkshopsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-ml-white">{tNav("workshops")}</h1>
         {isCoach && (
-          <a
-            href={`/${locale}/atolyeler/olustur`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-ml-info hover:bg-ml-info/80 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-ml-info/20 active:scale-[0.97]"
-          >
-            <Plus className="w-4 h-4" />
-            {t("create")}
-          </a>
+          <div className="flex gap-2">
+            <a
+              href={`/${locale}/atolyeler/yonetim`}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-ml-dark-card hover:bg-ml-dark-hover text-ml-white text-sm font-semibold rounded-xl transition-all border border-ml-dark-border hover:border-ml-info/40 active:scale-[0.97]"
+            >
+              <Settings className="w-4 h-4" />
+              {t("manage")}
+            </a>
+            <a
+              href={`/${locale}/atolyeler/olustur`}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-ml-info hover:bg-ml-info/80 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-ml-info/20 active:scale-[0.97]"
+            >
+              <Plus className="w-4 h-4" />
+              {t("create")}
+            </a>
+          </div>
         )}
       </div>
 

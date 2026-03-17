@@ -279,7 +279,8 @@
     "noMessages": "No messages yet. Send the first one!",
     "messagePlaceholder": "Type your message...",
     "coachOnly": "Only coaches can create.",
-    "createBtn": "Create"
+    "createBtn": "Create",
+    "manage": "Manage"
   },
   "teams": {
     "createTeam": "Create Team",
