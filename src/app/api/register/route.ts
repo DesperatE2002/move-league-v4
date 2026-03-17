@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import bcryptjs from "bcryptjs";
 import { registerSchema } from "@/lib/validators";
 import { sendWelcomeEmail } from "@/lib/email";
+import { randomBytes, createHash } from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
@@ -53,6 +54,11 @@ export async function POST(req: NextRequest) {
     // Hash password
     const passwordHash = await bcryptjs.hash(password, 12);
 
+    // Generate verification token
+    const rawToken = randomBytes(32).toString("hex");
+    const hashedToken = createHash("sha256").update(rawToken).digest("hex");
+    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     // Create user
     const now = new Date();
     const newUser = await db
@@ -69,6 +75,8 @@ export async function POST(req: NextRequest) {
         termsConsent: true,
         marketingConsent: marketingConsent || false,
         consentAt: now,
+        resetToken: hashedToken,
+        resetTokenExpiry: tokenExpiry,
       })
       .returning({
         id: users.id,
@@ -93,7 +101,7 @@ export async function POST(req: NextRequest) {
     ]);
 
     // Send welcome + verification email
-    sendWelcomeEmail(email, name, newUser[0].id);
+    sendWelcomeEmail(email, name, rawToken);
 
     return NextResponse.json(
       { message: "Kayıt başarılı", user: newUser[0] },

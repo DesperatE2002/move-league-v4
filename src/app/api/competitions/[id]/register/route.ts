@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { competitionRegistrations, competitions, teamMembers } from "@/db/schema/teams";
+import { competitionRegistrations, competitions, teams, teamMembers } from "@/db/schema/teams";
 import { auth } from "@/lib/auth";
 import { eq, and } from "drizzle-orm";
 
@@ -19,6 +19,21 @@ export async function POST(
     const { teamId } = await req.json();
     if (!teamId) {
       return NextResponse.json({ error: "Takım ID gerekli" }, { status: 400 });
+    }
+
+    // Verify user is the coach of this team
+    const [team] = await db
+      .select({ id: teams.id, coachId: teams.coachId })
+      .from(teams)
+      .where(eq(teams.id, teamId))
+      .limit(1);
+
+    if (!team) {
+      return NextResponse.json({ error: "Takım bulunamadı" }, { status: 404 });
+    }
+
+    if (team.coachId !== session.user.id && session.user.role !== "admin") {
+      return NextResponse.json({ error: "Sadece takım koçu yarışmaya kayıt yapabilir" }, { status: 403 });
     }
 
     // Check competition exists and is open

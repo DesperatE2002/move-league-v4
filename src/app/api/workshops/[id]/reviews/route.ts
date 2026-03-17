@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { workshopReviews } from "@/db/schema/workshops";
+import { workshopReviews, workshopEnrollments } from "@/db/schema/workshops";
 import { auth } from "@/lib/auth";
 import { workshopReviewSchema } from "@/lib/validators";
 import { eq, and } from "drizzle-orm";
@@ -21,6 +21,23 @@ export async function POST(
     const parsed = workshopReviewSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message || "Geçersiz veri" }, { status: 400 });
+    }
+
+    // Check if user is enrolled in this workshop
+    const [enrollment] = await db
+      .select({ id: workshopEnrollments.id })
+      .from(workshopEnrollments)
+      .where(
+        and(
+          eq(workshopEnrollments.workshopId, id),
+          eq(workshopEnrollments.userId, session.user.id),
+          eq(workshopEnrollments.status, "enrolled")
+        )
+      )
+      .limit(1);
+
+    if (!enrollment) {
+      return NextResponse.json({ error: "Bu atölyeye kayıtlı değilsiniz" }, { status: 403 });
     }
 
     // Check if already reviewed

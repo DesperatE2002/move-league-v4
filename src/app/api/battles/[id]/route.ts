@@ -485,6 +485,17 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
       return NextResponse.json({ error: "Bu düello puanlanamaz" }, { status: 400 });
     }
 
+    // Prevent duplicate scoring
+    const existingScores = await db
+      .select({ id: battleScores.id })
+      .from(battleScores)
+      .where(eq(battleScores.battleId, id))
+      .limit(1);
+
+    if (existingScores.length > 0) {
+      return NextResponse.json({ error: "Bu düello zaten puanlanmış" }, { status: 400 });
+    }
+
     const data = parsed.data;
 
     const challengerTotal =
@@ -530,7 +541,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
 
     // ELO calculation
     let ratingChange = 0;
-    if (battle.seasonId && winnerId) {
+    if (battle.seasonId) {
       const [challengerRating, opponentRating] = await Promise.all([
         db.select().from(dancerRatings).where(
           and(eq(dancerRatings.userId, battle.challengerId), eq(dancerRatings.seasonId, battle.seasonId))
@@ -545,47 +556,72 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
       const cBattles = challengerRating[0]?.totalBattles ?? 0;
       const oBattles = opponentRating[0]?.totalBattles ?? 0;
 
-      const isChWinner = winnerId === battle.challengerId;
-      const elo = calculateElo(
-        isChWinner ? cRating : oRating,
-        isChWinner ? oRating : cRating,
-        isChWinner ? cBattles : oBattles,
-        isChWinner ? oBattles : cBattles
-      );
+      if (winnerId) {
+        const isChWinner = winnerId === battle.challengerId;
+        const elo = calculateElo(
+          isChWinner ? cRating : oRating,
+          isChWinner ? oRating : cRating,
+          isChWinner ? cBattles : oBattles,
+          isChWinner ? oBattles : cBattles
+        );
 
-      ratingChange = elo.winnerChange;
+        ratingChange = elo.winnerChange;
 
-      // Upsert ratings for both dancers
-      const winnerNewR = isChWinner ? elo.winnerNewRating : elo.loserNewRating;
-      const loserNewR = isChWinner ? elo.loserNewRating : elo.winnerNewRating;
+        const winnerNewR = isChWinner ? elo.winnerNewRating : elo.loserNewRating;
+        const loserNewR = isChWinner ? elo.loserNewRating : elo.winnerNewRating;
 
-      for (const { uId, newR, won } of [
-        { uId: battle.challengerId, newR: isChWinner ? winnerNewR : loserNewR, won: isChWinner },
-        { uId: battle.opponentId, newR: isChWinner ? loserNewR : winnerNewR, won: !isChWinner },
-      ]) {
-        const existing = await db.select().from(dancerRatings).where(
-          and(eq(dancerRatings.userId, uId), eq(dancerRatings.seasonId, battle.seasonId))
-        ).limit(1);
+        for (const { uId, newR, won } of [
+          { uId: battle.challengerId, newR: isChWinner ? winnerNewR : loserNewR, won: isChWinner },
+          { uId: battle.opponentId, newR: isChWinner ? loserNewR : winnerNewR, won: !isChWinner },
+        ]) {
+          const existing = await db.select().from(dancerRatings).where(
+            and(eq(dancerRatings.userId, uId), eq(dancerRatings.seasonId, battle.seasonId))
+          ).limit(1);
 
-        if (existing.length > 0) {
-          await db.update(dancerRatings).set({
-            rating: newR,
-            wins: won ? (existing[0].wins ?? 0) + 1 : existing[0].wins ?? 0,
-            losses: !won ? (existing[0].losses ?? 0) + 1 : existing[0].losses ?? 0,
-            totalBattles: (existing[0].totalBattles ?? 0) + 1,
-            peakRating: Math.max(existing[0].peakRating ?? 0, newR),
-            updatedAt: new Date(),
-          }).where(eq(dancerRatings.id, existing[0].id));
-        } else {
-          await db.insert(dancerRatings).values({
-            userId: uId,
-            seasonId: battle.seasonId,
-            rating: newR,
-            wins: won ? 1 : 0,
-            losses: won ? 0 : 1,
-            totalBattles: 1,
-            peakRating: newR,
-          });
+          if (existing.length > 0) {
+            await db.update(dancerRatings).set({
+              rating: newR,
+              wins: won ? (existing[0].wins ?? 0) + 1 : existing[0].wins ?? 0,
+              losses: !won ? (existing[0].losses ?? 0) + 1 : existing[0].losses ?? 0,
+              totalBattles: (existing[0].totalBattles ?? 0) + 1,
+              peakRating: Math.max(existing[0].peakRating ?? 0, newR),
+              updatedAt: new Date(),
+            }).where(eq(dancerRatings.id, existing[0].id));
+          } else {
+            await db.insert(dancerRatings).values({
+              userId: uId,
+              seasonId: battle.seasonId,
+              rating: newR,
+              wins: won ? 1 : 0,
+              losses: won ? 0 : 1,
+              totalBattles: 1,
+              peakRating: newR,
+            });
+          }
+        }
+      } else {
+        // Draw — update totalBattles and draws for both
+        for (const uId of [battle.challengerId, battle.opponentId]) {
+          const existing = await db.select().from(dancerRatings).where(
+            and(eq(dancerRatings.userId, uId), eq(dancerRatings.seasonId, battle.seasonId))
+          ).limit(1);
+
+          if (existing.length > 0) {
+            await db.update(dancerRatings).set({
+              draws: (existing[0].draws ?? 0) + 1,
+              totalBattles: (existing[0].totalBattles ?? 0) + 1,
+              updatedAt: new Date(),
+            }).where(eq(dancerRatings.id, existing[0].id));
+          } else {
+            await db.insert(dancerRatings).values({
+              userId: uId,
+              seasonId: battle.seasonId,
+              rating: 1000,
+              draws: 1,
+              totalBattles: 1,
+              peakRating: 1000,
+            });
+          }
         }
       }
     }
@@ -604,7 +640,6 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
       .where(eq(battles.id, id));
 
     // Notify dancers
-    const winnerName = winnerId === battle.challengerId ? "Challenger" : "Opponent";
     await Promise.all([
       createNotification(
         battle.challengerId,
@@ -613,7 +648,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
         winnerId === battle.challengerId
           ? `Tebrikler! Düelloyu kazandınız! (+${ratingChange} puan)`
           : winnerId
-            ? `Düelloyu kaybettiniz. (${ratingChange} puan)`
+            ? `Düelloyu kaybettiniz. (-${ratingChange} puan)`
             : "Düello berabere bitti!",
         { battleId: id, challengerScore: challengerTotal, opponentScore: opponentTotal }
       ),
@@ -624,7 +659,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
         winnerId === battle.opponentId
           ? `Tebrikler! Düelloyu kazandınız! (+${ratingChange} puan)`
           : winnerId
-            ? `Düelloyu kaybettiniz. (${ratingChange} puan)`
+            ? `Düelloyu kaybettiniz. (-${ratingChange} puan)`
             : "Düello berabere bitti!",
         { battleId: id, challengerScore: challengerTotal, opponentScore: opponentTotal }
       ),

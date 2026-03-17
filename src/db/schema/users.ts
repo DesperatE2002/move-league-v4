@@ -39,6 +39,8 @@ export const users = pgTable("users", {
   language: languageEnum("language").default("tr"),
   emailVerified: boolean("email_verified").default(false),
   isActive: boolean("is_active").default(true),
+  resetToken: varchar("reset_token", { length: 255 }),
+  resetTokenExpiry: timestamp("reset_token_expiry"),
   kvkkConsent: boolean("kvkk_consent").default(false),
   termsConsent: boolean("terms_consent").default(false),
   marketingConsent: boolean("marketing_consent").default(false),

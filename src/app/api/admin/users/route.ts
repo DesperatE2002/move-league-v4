@@ -62,6 +62,17 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Kendi rolünüzü değiştiremezsiniz" }, { status: 400 });
     }
 
+    // Check user exists
+    const [targetUser] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!targetUser) {
+      return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 });
+    }
+
     await db
       .update(users)
       .set({ role: role as "dancer" | "coach" | "studio" | "judge" | "admin", updatedAt: new Date() })

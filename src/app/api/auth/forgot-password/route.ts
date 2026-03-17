@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { eq } from "drizzle-orm";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { randomBytes, createHash } from "crypto";
 
 // POST /api/auth/forgot-password — Request password reset
 export async function POST(req: NextRequest) {
@@ -23,7 +24,17 @@ export async function POST(req: NextRequest) {
 
     // Always return success to prevent email enumeration
     if (result[0]) {
-      sendPasswordResetEmail(email, result[0].name || "", result[0].id);
+      // Generate secure token
+      const rawToken = randomBytes(32).toString("hex");
+      const hashedToken = createHash("sha256").update(rawToken).digest("hex");
+      const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      await db
+        .update(users)
+        .set({ resetToken: hashedToken, resetTokenExpiry: expiry })
+        .where(eq(users.id, result[0].id));
+
+      sendPasswordResetEmail(email, result[0].name || "", rawToken);
     }
 
     return NextResponse.json({

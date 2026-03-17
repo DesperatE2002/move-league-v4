@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { eq } from "drizzle-orm";
+import { createHash } from "crypto";
 
 // POST /api/auth/verify-email — Verify email with token
 export async function POST(req: NextRequest) {
@@ -13,15 +14,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Token gerekli" }, { status: 400 });
     }
 
-    // Token is the user ID for simplicity (in production, use a proper token system)
+    // Hash the incoming token and find user with matching resetToken
+    const hashedToken = createHash("sha256").update(token).digest("hex");
+
     const result = await db
-      .select()
+      .select({ id: users.id, emailVerified: users.emailVerified, resetToken: users.resetToken })
       .from(users)
-      .where(eq(users.id, token))
+      .where(eq(users.resetToken, hashedToken))
       .limit(1);
 
     if (!result[0]) {
-      return NextResponse.json({ error: "Geçersiz token" }, { status: 400 });
+      return NextResponse.json({ error: "Geçersiz veya süresi dolmuş token" }, { status: 400 });
     }
 
     if (result[0].emailVerified) {
@@ -30,8 +33,8 @@ export async function POST(req: NextRequest) {
 
     await db
       .update(users)
-      .set({ emailVerified: true })
-      .where(eq(users.id, token));
+      .set({ emailVerified: true, resetToken: null, resetTokenExpiry: null })
+      .where(eq(users.id, result[0].id));
 
     return NextResponse.json({ message: "E-posta doğrulandı" });
   } catch (error) {

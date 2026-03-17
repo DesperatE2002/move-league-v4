@@ -32,6 +32,25 @@ export async function GET(
 
     const isCoach = userId === workshop.coachId;
 
+    // Non-coach users must be enrolled
+    if (!isCoach) {
+      const [enrollment] = await db
+        .select({ id: workshopEnrollments.id })
+        .from(workshopEnrollments)
+        .where(
+          and(
+            eq(workshopEnrollments.workshopId, workshopId),
+            eq(workshopEnrollments.userId, userId),
+            eq(workshopEnrollments.status, "enrolled")
+          )
+        )
+        .limit(1);
+
+      if (!enrollment) {
+        return NextResponse.json({ error: "Bu atölyeye kayıtlı değilsiniz" }, { status: 403 });
+      }
+    }
+
     // If user is the coach, get partner from query param
     const partnerId = isCoach
       ? new URL(req.url).searchParams.get("partnerId")
@@ -131,6 +150,22 @@ export async function POST(
       receiverId = body.receiverId;
       if (!receiverId) {
         return NextResponse.json({ error: "Alıcı ID gerekli" }, { status: 400 });
+      }
+      // Validate receiver is enrolled in this workshop
+      const [receiverEnrollment] = await db
+        .select({ id: workshopEnrollments.id })
+        .from(workshopEnrollments)
+        .where(
+          and(
+            eq(workshopEnrollments.workshopId, workshopId),
+            eq(workshopEnrollments.userId, receiverId),
+            eq(workshopEnrollments.status, "enrolled")
+          )
+        )
+        .limit(1);
+
+      if (!receiverEnrollment) {
+        return NextResponse.json({ error: "Alıcı bu atölyeye kayıtlı değil" }, { status: 400 });
       }
     } else {
       // Check enrollment

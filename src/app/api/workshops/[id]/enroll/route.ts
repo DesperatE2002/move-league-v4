@@ -19,6 +19,21 @@ export async function POST(
 
     const { id } = await params;
 
+    // Check workshop exists and is approved
+    const [workshop] = await db
+      .select({ id: workshops.id, isPublished: workshops.isPublished, isApproved: workshops.isApproved })
+      .from(workshops)
+      .where(eq(workshops.id, id))
+      .limit(1);
+
+    if (!workshop) {
+      return NextResponse.json({ error: "Atölye bulunamadı" }, { status: 404 });
+    }
+
+    if (!workshop.isPublished || !workshop.isApproved) {
+      return NextResponse.json({ error: "Bu atölye henüz onaylanmamış" }, { status: 403 });
+    }
+
     // Check if already enrolled
     const existing = await db
       .select({ id: workshopEnrollments.id })
