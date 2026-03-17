@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { eq } from "drizzle-orm";
+import { sendPasswordResetEmail } from "@/lib/email";
 
 // POST /api/auth/forgot-password — Request password reset
 export async function POST(req: NextRequest) {
@@ -15,17 +16,14 @@ export async function POST(req: NextRequest) {
 
     // Check if user exists (don't reveal if user doesn't exist for security)
     const result = await db
-      .select({ id: users.id })
+      .select({ id: users.id, name: users.name })
       .from(users)
       .where(eq(users.email, email))
       .limit(1);
 
     // Always return success to prevent email enumeration
-    // In production: send email with reset token via Resend
     if (result[0]) {
-      // TODO: Send email with reset link containing user ID as token
-      // await sendResetEmail(email, result[0].id);
-      console.log("Password reset requested for:", email);
+      sendPasswordResetEmail(email, result[0].name || "", result[0].id);
     }
 
     return NextResponse.json({

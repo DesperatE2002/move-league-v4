@@ -5,6 +5,7 @@ import { users } from "@/db/schema/users";
 import { notifications } from "@/db/schema/notifications";
 import { auth } from "@/lib/auth";
 import { eq, and } from "drizzle-orm";
+import { sendTeamInviteEmail } from "@/lib/email";
 
 // POST /api/teams/[id]/members — Invite member (coach only)
 export async function POST(
@@ -54,6 +55,12 @@ export async function POST(
       message: `${teamArr[0].name} takımına davet edildiniz.`,
       data: { teamId: id },
     });
+
+    // Send email to invited user
+    const invitedUser = await db.select({ email: users.email, name: users.name }).from(users).where(eq(users.id, userId)).limit(1);
+    if (invitedUser[0]?.email) {
+      sendTeamInviteEmail(invitedUser[0].email, invitedUser[0].name, teamArr[0].name, session.user.name || "");
+    }
 
     return NextResponse.json({ message: "Davet gönderildi" }, { status: 201 });
   } catch (error) {

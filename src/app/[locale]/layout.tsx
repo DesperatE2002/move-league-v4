@@ -3,6 +3,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { Inter } from "next/font/google";
+import CookieConsent from "@/components/CookieConsent";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
@@ -33,6 +34,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       <body className="bg-ml-black text-ml-gray-100 antialiased">
         <NextIntlClientProvider messages={messages}>
           {children}
+          <CookieConsent />
         </NextIntlClientProvider>
         <script
           dangerouslySetInnerHTML={{

@@ -4,6 +4,7 @@ import TopBar from "@/components/layout/TopBar";
 import BottomNav from "@/components/layout/BottomNav";
 import Sidebar from "@/components/layout/Sidebar";
 import Providers from "@/components/Providers";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 export default async function PlatformLayout({
   children,
@@ -27,6 +28,7 @@ export default async function PlatformLayout({
         <div className="max-w-lg lg:max-w-5xl mx-auto px-4 lg:px-8 py-4">{children}</div>
       </main>
       <BottomNav role={session.user.role} />
+      <PWAInstallPrompt />
     </Providers>
   );
 }

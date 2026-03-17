@@ -154,6 +154,19 @@ export default function LoginPage() {
             </a>
           </p>
         </div>
+
+        {/* Legal links */}
+        <div className="mt-4 flex items-center justify-center gap-3 text-[11px] text-ml-gray-600">
+          <a href={`/${locale}/kvkk`} className="hover:text-ml-gray-400 transition-colors">KVKK</a>
+          <span>·</span>
+          <a href={`/${locale}/gizlilik`} className="hover:text-ml-gray-400 transition-colors">
+            {locale === "tr" ? "Gizlilik" : "Privacy"}
+          </a>
+          <span>·</span>
+          <a href={`/${locale}/kullanim-kosullari`} className="hover:text-ml-gray-400 transition-colors">
+            {locale === "tr" ? "Koşullar" : "Terms"}
+          </a>
+        </div>
       </div>
     </div>
   );

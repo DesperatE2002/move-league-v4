@@ -67,7 +67,10 @@ export default function TeamDetailPage() {
     setSearching(true);
     try {
       const res = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`);
-      if (res.ok) setSearchResults(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        setSearchResults(data.users || []);
+      }
     } catch {
       // silent
     } finally {

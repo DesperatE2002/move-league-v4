@@ -4,6 +4,7 @@ import { users } from "@/db/schema/users";
 import { eq } from "drizzle-orm";
 import bcryptjs from "bcryptjs";
 import { registerSchema } from "@/lib/validators";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -70,6 +71,9 @@ export async function POST(req: NextRequest) {
         username: users.username,
         role: users.role,
       });
+
+    // Send welcome + verification email
+    sendWelcomeEmail(email, name, newUser[0].id);
 
     return NextResponse.json(
       { message: "Kayıt başarılı", user: newUser[0] },
