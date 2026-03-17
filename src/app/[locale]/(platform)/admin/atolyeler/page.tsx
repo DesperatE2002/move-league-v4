@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
-import { GraduationCap, Check, X, Loader2, ArrowLeft } from "lucide-react";
+import { GraduationCap, Check, X, Loader2, ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AdminWorkshop {
@@ -15,6 +15,7 @@ interface AdminWorkshop {
   difficulty: string | null;
   isPublished: boolean;
   isApproved: boolean;
+  deletionRequestedAt: string | null;
   createdAt: string;
   coach: { name: string; surname: string; username: string } | null;
 }
@@ -43,12 +44,26 @@ export default function AdminWorkshopsPage() {
     }
   }
 
-  async function handleAction(workshopId: string, action: "approve" | "reject") {
+  async function handleAction(workshopId: string, action: "approve" | "reject" | "approve_deletion" | "reject_deletion") {
     try {
       const res = await fetch("/api/admin/workshops", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workshopId, action }),
+      });
+      if (res.ok) fetchWorkshops();
+    } catch {
+      // silent
+    }
+  }
+
+  async function handleDelete(workshopId: string) {
+    if (!confirm("Bu atölyeyi kalıcı olarak silmek istediğinize emin misiniz?")) return;
+    try {
+      const res = await fetch("/api/admin/workshops", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workshopId }),
       });
       if (res.ok) fetchWorkshops();
     } catch {
@@ -88,6 +103,12 @@ export default function AdminWorkshopsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5">
+                  {w.deletionRequestedAt && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-ml-red/10 text-ml-red border border-ml-red/20 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      Silme Talebi
+                    </span>
+                  )}
                   {w.isApproved ? (
                     <span className="text-xs px-2 py-0.5 rounded-full bg-ml-success/10 text-ml-success border border-ml-success/20">{t("approved")}</span>
                   ) : (
@@ -103,22 +124,48 @@ export default function AdminWorkshopsPage() {
                 {` · ${new Date(w.createdAt).toLocaleDateString("tr-TR")}`}
               </div>
 
-              {!w.isApproved && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleAction(w.id, "approve")}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-ml-success/10 text-ml-success text-xs font-medium rounded-lg hover:bg-ml-success/20 transition-all border border-ml-success/20"
-                  >
-                    <Check className="w-3 h-3" /> {t("approve")}
-                  </button>
-                  <button
-                    onClick={() => handleAction(w.id, "reject")}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-ml-red/10 text-ml-red text-xs font-medium rounded-lg hover:bg-ml-red/20 transition-all border border-ml-red/20"
-                  >
-                    <X className="w-3 h-3" /> {t("reject")}
-                  </button>
-                </div>
-              )}
+              <div className="flex gap-2 flex-wrap">
+                {!w.isApproved && !w.deletionRequestedAt && (
+                  <>
+                    <button
+                      onClick={() => handleAction(w.id, "approve")}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-ml-success/10 text-ml-success text-xs font-medium rounded-lg hover:bg-ml-success/20 transition-all border border-ml-success/20"
+                    >
+                      <Check className="w-3 h-3" /> {t("approve")}
+                    </button>
+                    <button
+                      onClick={() => handleAction(w.id, "reject")}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-ml-red/10 text-ml-red text-xs font-medium rounded-lg hover:bg-ml-red/20 transition-all border border-ml-red/20"
+                    >
+                      <X className="w-3 h-3" /> {t("reject")}
+                    </button>
+                  </>
+                )}
+
+                {w.deletionRequestedAt && (
+                  <>
+                    <button
+                      onClick={() => handleAction(w.id, "approve_deletion")}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-ml-red/10 text-ml-red text-xs font-medium rounded-lg hover:bg-ml-red/20 transition-all border border-ml-red/20"
+                    >
+                      <Check className="w-3 h-3" /> Silmeyi Onayla
+                    </button>
+                    <button
+                      onClick={() => handleAction(w.id, "reject_deletion")}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-ml-warning/10 text-ml-warning text-xs font-medium rounded-lg hover:bg-ml-warning/20 transition-all border border-ml-warning/20"
+                    >
+                      <X className="w-3 h-3" /> Talebi Reddet
+                    </button>
+                  </>
+                )}
+
+                <button
+                  onClick={() => handleDelete(w.id)}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-ml-red/10 text-ml-red text-xs font-medium rounded-lg hover:bg-ml-red/20 transition-all border border-ml-red/20 ml-auto"
+                >
+                  <Trash2 className="w-3 h-3" /> Sil
+                </button>
+              </div>
             </div>
           ))}
         </div>

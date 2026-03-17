@@ -9,7 +9,7 @@ function getResend() {
   return resend;
 }
 
-const FROM_EMAIL = "Move League <noreply@moveleague.com>";
+const FROM_EMAIL = process.env.EMAIL_FROM || "Move League <onboarding@resend.devue <onboarding@resend.dev>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://move-league-v4.vercel.app";
 
 async function sendEmail(to: string, subject: string, html: string) {

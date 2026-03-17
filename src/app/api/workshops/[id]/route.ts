@@ -100,3 +100,43 @@ export async function GET(
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
   }
 }
+
+// DELETE /api/workshops/[id] — Coach requests deletion (needs admin approval)
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    const [workshop] = await db
+      .select({ id: workshops.id, coachId: workshops.coachId })
+      .from(workshops)
+      .where(eq(workshops.id, id))
+      .limit(1);
+
+    if (!workshop) {
+      return NextResponse.json({ error: "Atölye bulunamadı" }, { status: 404 });
+    }
+
+    if (workshop.coachId !== session.user.id && session.user.role !== "admin") {
+      return NextResponse.json({ error: "Yetkisiz" }, { status: 403 });
+    }
+
+    // Coach requests deletion — set flag for admin review
+    await db
+      .update(workshops)
+      .set({ deletionRequestedAt: new Date() })
+      .where(eq(workshops.id, id));
+
+    return NextResponse.json({ message: "Silme talebi gönderildi, admin onayı bekleniyor" });
+  } catch (error) {
+    console.error("Workshop deletion request error:", error);
+    return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
+  }
+}

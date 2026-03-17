@@ -48,6 +48,7 @@ export const workshops = pgTable("workshops", {
   durationMinutes: integer("duration_minutes"),
   isPublished: boolean("is_published").default(false),
   isApproved: boolean("is_approved").default(false),
+  deletionRequestedAt: timestamp("deletion_requested_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

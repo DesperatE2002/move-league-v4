@@ -50,6 +50,7 @@ interface CoachWorkshop {
   durationMinutes: number | null;
   isPublished: boolean;
   isApproved: boolean;
+  deletionRequestedAt: string | null;
   createdAt: string;
   enrolledCount: number;
   avgRating: number | null;
@@ -85,6 +86,7 @@ export default function CoachWorkshopDashboard() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [tab, setTab] = useState<"active" | "expired" | "all">("active");
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -102,6 +104,19 @@ export default function CoachWorkshopDashboard() {
       // silent
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleRequestDeletion(workshopId: string) {
+    if (!confirm(isTr ? "Bu atölyeyi kaldırmak istediğinize emin misiniz? Admin onayı gerekecektir." : "Are you sure you want to remove this workshop? Admin approval is required.")) return;
+    setDeleting(workshopId);
+    try {
+      const res = await fetch(`/api/workshops/${workshopId}`, { method: "DELETE" });
+      if (res.ok) await fetchData();
+    } catch {
+      // silent
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -204,6 +219,12 @@ export default function CoachWorkshopDashboard() {
                               {isTr ? "Onay Bekleniyor" : "Pending"}
                             </span>
                           )}
+                          {w.deletionRequestedAt && (
+                            <span className="flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-medium rounded-full bg-ml-red/10 text-ml-red border border-ml-red/20">
+                              <XCircle className="w-3 h-3" />
+                              {isTr ? "Silme Onayı Bekleniyor" : "Deletion Pending"}
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-3 text-xs text-ml-gray-500">
                           {w.danceStyle && <span>{w.danceStyle}</span>}
@@ -288,12 +309,26 @@ export default function CoachWorkshopDashboard() {
                       </div>
 
                       {/* Link to workshop */}
-                      <a
-                        href={`/${locale}/atolyeler/${w.id}`}
-                        className="block text-center text-xs text-ml-info hover:underline mt-2"
-                      >
-                        {isTr ? "Atölye sayfasına git →" : "Go to workshop page →"}
-                      </a>
+                      <div className="flex items-center gap-3 mt-2">
+                        <a
+                          href={`/${locale}/atolyeler/${w.id}`}
+                          className="text-xs text-ml-info hover:underline"
+                        >
+                          {isTr ? "Atölye sayfasına git →" : "Go to workshop page →"}
+                        </a>
+                        {!w.deletionRequestedAt && (
+                          <button
+                            onClick={() => handleRequestDeletion(w.id)}
+                            disabled={deleting === w.id}
+                            className="flex items-center gap-1 ml-auto px-3 py-1.5 bg-ml-red/10 text-ml-red text-xs font-medium rounded-lg hover:bg-ml-red/20 transition-all border border-ml-red/20 disabled:opacity-50"
+                          >
+                            <XCircle className="w-3 h-3" />
+                            {deleting === w.id
+                              ? (isTr ? "Gönderiliyor..." : "Sending...")
+                              : (isTr ? "Kaldırma Talebi" : "Request Removal")}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
