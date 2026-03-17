@@ -24,6 +24,9 @@ export const registerSchema = z.object({
     .regex(/[0-9]/, "Şifre en az bir rakam içermelidir"),
   role: z.enum(["dancer", "coach", "studio", "judge"]),
   danceStyles: z.array(z.string()).min(1, "En az bir dans stili seçmelisiniz").max(10).optional(),
+  kvkkConsent: z.literal(true, { error: "KVKK onayı zorunludur" }),
+  termsConsent: z.literal(true, { error: "Kullanım koşulları onayı zorunludur" }),
+  marketingConsent: z.boolean().default(false),
 });
 
 export const loginSchema = z.object({

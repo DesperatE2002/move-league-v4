@@ -39,6 +39,10 @@ export const users = pgTable("users", {
   language: languageEnum("language").default("tr"),
   emailVerified: boolean("email_verified").default(false),
   isActive: boolean("is_active").default(true),
+  kvkkConsent: boolean("kvkk_consent").default(false),
+  termsConsent: boolean("terms_consent").default(false),
+  marketingConsent: boolean("marketing_consent").default(false),
+  consentAt: timestamp("consent_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

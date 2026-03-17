@@ -15,6 +15,11 @@ import {
   Loader2,
   LogOut,
   Check,
+  ShieldCheck,
+  Download,
+  Trash2,
+  Mail,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -41,10 +46,32 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [consentLoading, setConsentLoading] = useState(false);
+  const [deletionRequested, setDeletionRequested] = useState(false);
+  const [deletionReason, setDeletionReason] = useState("");
+  const [showDeletion, setShowDeletion] = useState(false);
+  const isTr = locale === "tr";
 
   useEffect(() => {
     fetchProfile();
+    fetchConsent();
   }, []);
+
+  const fetchConsent = async () => {
+    try {
+      const res = await fetch("/api/users/me/consents");
+      if (res.ok) {
+        const data = await res.json();
+        setMarketingConsent(data.current?.marketingConsent || false);
+      }
+      const delRes = await fetch("/api/users/me/deletion-request");
+      if (delRes.ok) {
+        const delData = await delRes.json();
+        setDeletionRequested(delData.requests?.some((r: any) => r.status === "pending") || false);
+      }
+    } catch { }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -300,6 +327,142 @@ export default function SettingsPage() {
           </>
         )}
       </button>
+
+      {/* KVKK & Privacy Rights */}
+      <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border p-4 space-y-3">
+        <h2 className="text-sm font-semibold text-ml-white flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-ml-red" />
+          {isTr ? "Gizlilik & KVKK Hakları" : "Privacy & KVKK Rights"}
+        </h2>
+
+        {/* Marketing consent toggle */}
+        <div className="flex items-center justify-between p-3 bg-ml-dark rounded-lg border border-ml-dark-border">
+          <div className="flex items-center gap-2">
+            <Mail className="w-4 h-4 text-ml-gray-400" />
+            <div>
+              <p className="text-xs font-medium text-ml-white">
+                {isTr ? "Pazarlama E-postaları" : "Marketing Emails"}
+              </p>
+              <p className="text-[10px] text-ml-gray-500">
+                {isTr ? "Etkinlik, kampanya ve yenilik bildirimleri" : "Events, campaigns and update notifications"}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={async () => {
+              setConsentLoading(true);
+              try {
+                const res = await fetch("/api/users/me/consents", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ marketingConsent: !marketingConsent }),
+                });
+                if (res.ok) setMarketingConsent(!marketingConsent);
+              } catch { } finally { setConsentLoading(false); }
+            }}
+            disabled={consentLoading}
+            className={`relative w-11 h-6 rounded-full transition-colors ${
+              marketingConsent ? "bg-ml-success" : "bg-ml-gray-700"
+            }`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
+              marketingConsent ? "translate-x-5" : ""
+            }`} />
+          </button>
+        </div>
+
+        {/* Data export */}
+        <a
+          href="/api/users/me/data-export"
+          className="flex items-center gap-2 p-3 bg-ml-dark rounded-lg border border-ml-dark-border hover:border-ml-info/40 transition-all cursor-pointer"
+        >
+          <Download className="w-4 h-4 text-ml-info" />
+          <div>
+            <p className="text-xs font-medium text-ml-white">
+              {isTr ? "Verilerimi İndir" : "Download My Data"}
+            </p>
+            <p className="text-[10px] text-ml-gray-500">
+              {isTr ? "KVKK Madde 11 — Kişisel verilerinizin bir kopyasını JSON olarak indirin" : "KVKK Article 11 — Download a copy of your personal data as JSON"}
+            </p>
+          </div>
+        </a>
+
+        {/* Data deletion request */}
+        <div className="p-3 bg-ml-dark rounded-lg border border-ml-dark-border space-y-2">
+          <div className="flex items-center gap-2">
+            <Trash2 className="w-4 h-4 text-ml-red" />
+            <div>
+              <p className="text-xs font-medium text-ml-white">
+                {isTr ? "Hesap & Veri Silme Talebi" : "Account & Data Deletion Request"}
+              </p>
+              <p className="text-[10px] text-ml-gray-500">
+                {isTr ? "KVKK Madde 7 — Kişisel verilerinizin silinmesini talep edin" : "KVKK Article 7 — Request deletion of your personal data"}
+              </p>
+            </div>
+          </div>
+          {deletionRequested ? (
+            <div className="flex items-center gap-2 p-2 bg-ml-warning/10 border border-ml-warning/20 rounded-lg">
+              <AlertTriangle className="w-3.5 h-3.5 text-ml-warning" />
+              <p className="text-[11px] text-ml-warning">
+                {isTr ? "Silme talebiniz işleme alındı. 30 gün içinde sonuçlanacaktır." : "Your deletion request is being processed. It will be completed within 30 days."}
+              </p>
+            </div>
+          ) : showDeletion ? (
+            <div className="space-y-2">
+              <textarea
+                value={deletionReason}
+                onChange={(e) => setDeletionReason(e.target.value)}
+                placeholder={isTr ? "Silme sebebi (isteğe bağlı)" : "Reason for deletion (optional)"}
+                rows={2}
+                className="w-full px-3 py-2 bg-ml-dark-card border border-ml-dark-border rounded-lg text-ml-white text-xs placeholder:text-ml-gray-500 focus:outline-none focus:ring-1 focus:ring-ml-red resize-none"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/users/me/deletion-request", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ reason: deletionReason }),
+                      });
+                      if (res.ok) { setDeletionRequested(true); setShowDeletion(false); }
+                    } catch { }
+                  }}
+                  className="flex-1 py-2 bg-ml-red hover:bg-ml-red/80 text-white text-xs font-medium rounded-lg transition-all"
+                >
+                  {isTr ? "Silme Talebini Gönder" : "Submit Deletion Request"}
+                </button>
+                <button
+                  onClick={() => setShowDeletion(false)}
+                  className="px-4 py-2 bg-ml-dark-card border border-ml-dark-border text-ml-gray-400 text-xs rounded-lg hover:text-ml-white transition-all"
+                >
+                  {isTr ? "İptal" : "Cancel"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowDeletion(true)}
+              className="w-full py-2 border border-ml-red/30 text-ml-red text-xs font-medium rounded-lg hover:bg-ml-red/10 transition-all"
+            >
+              {isTr ? "Veri Silme Talebinde Bulun" : "Request Data Deletion"}
+            </button>
+          )}
+        </div>
+
+        {/* Legal links */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          <a href={`/${locale}/kvkk`} className="text-[10px] text-ml-gray-500 hover:text-ml-info underline">
+            {isTr ? "KVKK Aydınlatma Metni" : "KVKK Disclosure"}
+          </a>
+          <a href={`/${locale}/gizlilik`} className="text-[10px] text-ml-gray-500 hover:text-ml-info underline">
+            {isTr ? "Gizlilik Politikası" : "Privacy Policy"}
+          </a>
+          <a href={`/${locale}/kullanim-kosullari`} className="text-[10px] text-ml-gray-500 hover:text-ml-info underline">
+            {isTr ? "Kullanım Koşulları" : "Terms of Service"}
+          </a>
+        </div>
+      </div>
 
       {/* Logout */}
       <button

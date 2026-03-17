@@ -22,6 +22,10 @@ export async function GET() {
         city: users.city,
         country: users.country,
         isActive: users.isActive,
+        kvkkConsent: users.kvkkConsent,
+        termsConsent: users.termsConsent,
+        marketingConsent: users.marketingConsent,
+        consentAt: users.consentAt,
         createdAt: users.createdAt,
       })
       .from(users)

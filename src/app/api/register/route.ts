@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema/users";
+import { userConsents } from "@/db/schema/consents";
 import { eq } from "drizzle-orm";
 import bcryptjs from "bcryptjs";
 import { registerSchema } from "@/lib/validators";
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { name, surname, username, email, password, role, danceStyles } = parsed.data;
+    const { name, surname, username, email, password, role, danceStyles, kvkkConsent, termsConsent, marketingConsent } = parsed.data;
 
     // Check if email already exists
     const existingEmail = await db
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcryptjs.hash(password, 12);
 
     // Create user
+    const now = new Date();
     const newUser = await db
       .insert(users)
       .values({
@@ -63,6 +65,10 @@ export async function POST(req: NextRequest) {
         passwordHash,
         role,
         danceStyle: danceStyles?.join(", ") || null,
+        kvkkConsent: true,
+        termsConsent: true,
+        marketingConsent: marketingConsent || false,
+        consentAt: now,
       })
       .returning({
         id: users.id,
@@ -71,6 +77,20 @@ export async function POST(req: NextRequest) {
         username: users.username,
         role: users.role,
       });
+
+    // Log consent records (KVKK ispat kaydı)
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      || req.headers.get("x-real-ip")
+      || "unknown";
+    const ua = req.headers.get("user-agent") || "unknown";
+    const userId = newUser[0].id;
+
+    await db.insert(userConsents).values([
+      { userId, consentType: "kvkk" as const, action: "granted" as const, version: "1.0", ipAddress: ip, userAgent: ua },
+      { userId, consentType: "terms" as const, action: "granted" as const, version: "1.0", ipAddress: ip, userAgent: ua },
+      { userId, consentType: "privacy" as const, action: "granted" as const, version: "1.0", ipAddress: ip, userAgent: ua },
+      ...(marketingConsent ? [{ userId, consentType: "marketing" as const, action: "granted" as const, version: "1.0", ipAddress: ip, userAgent: ua }] : []),
+    ]);
 
     // Send welcome + verification email
     sendWelcomeEmail(email, name, newUser[0].id);

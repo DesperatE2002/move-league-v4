@@ -10,6 +10,9 @@ import {
   Loader2,
   Shield,
   Search,
+  ShieldCheck,
+  ShieldX,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +26,10 @@ interface UserItem {
   city: string | null;
   country: string | null;
   isActive: boolean;
+  kvkkConsent: boolean | null;
+  termsConsent: boolean | null;
+  marketingConsent: boolean | null;
+  consentAt: string | null;
   createdAt: string;
 }
 
@@ -156,6 +163,41 @@ export default function AdminUsersPage() {
                   ))}
                 </select>
                 {updatingRole === user.id && <Loader2 className="w-3 h-3 text-ml-red animate-spin" />}
+              </div>
+              {/* Consent Status */}
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <span className={cn(
+                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border",
+                  user.kvkkConsent
+                    ? "bg-ml-success/10 text-ml-success border-ml-success/20"
+                    : "bg-ml-red/10 text-ml-red border-ml-red/20"
+                )}>
+                  {user.kvkkConsent ? <ShieldCheck className="w-3 h-3" /> : <ShieldX className="w-3 h-3" />}
+                  KVKK
+                </span>
+                <span className={cn(
+                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border",
+                  user.termsConsent
+                    ? "bg-ml-success/10 text-ml-success border-ml-success/20"
+                    : "bg-ml-red/10 text-ml-red border-ml-red/20"
+                )}>
+                  {user.termsConsent ? <ShieldCheck className="w-3 h-3" /> : <ShieldX className="w-3 h-3" />}
+                  {locale === "tr" ? "Koşullar" : "Terms"}
+                </span>
+                <span className={cn(
+                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border",
+                  user.marketingConsent
+                    ? "bg-ml-info/10 text-ml-info border-ml-info/20"
+                    : "bg-ml-dark border-ml-dark-border text-ml-gray-500"
+                )}>
+                  <Mail className="w-3 h-3" />
+                  {locale === "tr" ? "Pazarlama" : "Marketing"}
+                </span>
+                {user.consentAt && (
+                  <span className="text-[10px] text-ml-gray-600">
+                    {new Date(user.consentAt).toLocaleDateString(locale === "tr" ? "tr-TR" : "en-US")}
+                  </span>
+                )}
               </div>
             </div>
           ))}
