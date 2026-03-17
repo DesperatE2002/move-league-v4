@@ -48,7 +48,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Geçersiz parametreler" }, { status: 400 });
     }
 
-    const validRoles = ["dancer", "coach", "judge", "admin"];
+    const validRoles = ["dancer", "coach", "studio", "judge", "admin"];
     if (!validRoles.includes(role)) {
       return NextResponse.json({ error: "Geçersiz rol" }, { status: 400 });
     }
@@ -60,7 +60,7 @@ export async function PATCH(req: NextRequest) {
 
     await db
       .update(users)
-      .set({ role: role as "dancer" | "coach" | "judge" | "admin", updatedAt: new Date() })
+      .set({ role: role as "dancer" | "coach" | "studio" | "judge" | "admin", updatedAt: new Date() })
       .where(eq(users.id, userId));
 
     return NextResponse.json({ message: "Rol güncellendi" });

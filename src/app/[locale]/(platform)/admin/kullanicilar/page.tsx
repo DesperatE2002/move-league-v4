@@ -26,7 +26,7 @@ interface UserItem {
   createdAt: string;
 }
 
-const ROLES = ["dancer", "coach", "judge", "admin"] as const;
+const ROLES = ["dancer", "coach", "studio", "judge", "admin"] as const;
 
 export default function AdminUsersPage() {
   const t = useTranslations("admin");
