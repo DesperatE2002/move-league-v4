@@ -139,34 +139,88 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 });
     }
 
-    // Delete all related records in order (foreign key dependencies)
+    // Delete all related records — must respect FK dependency order
+
+    // 1. Notifications & push subscriptions (no children)
     await db.delete(notifications).where(eq(notifications.userId, userId));
     await db.delete(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
     await db.delete(userBadges).where(eq(userBadges.userId, userId));
     await db.delete(dancerRatings).where(eq(dancerRatings.userId, userId));
+
+    // 2. Battle scores & preferences where user is judge/dancer/participant
     await db.delete(battleScores).where(eq(battleScores.judgeId, userId));
     await db.delete(battleScores).where(eq(battleScores.dancerId, userId));
     await db.delete(battleStudioPreferences).where(eq(battleStudioPreferences.userId, userId));
 
-    // Nullify user references in battles (don't delete battles, preserve history)
+    // 3. Before deleting battles, delete their child records (scores/preferences for those battles)
+    const userBattles = await db
+      .select({ id: battles.id })
+      .from(battles)
+      .where(sql`${battles.challengerId} = ${userId} OR ${battles.opponentId} = ${userId}`);
+    
+    if (userBattles.length > 0) {
+      const battleIds = userBattles.map(b => b.id);
+      for (const bid of battleIds) {
+        await db.delete(battleScores).where(eq(battleScores.battleId, bid));
+        await db.delete(battleStudioPreferences).where(eq(battleStudioPreferences.battleId, bid));
+      }
+    }
+
+    // Nullify user references in other battles (preserve battle history)
     await db.update(battles).set({ judgeId: null }).where(eq(battles.judgeId, userId));
     await db.update(battles).set({ winnerId: null }).where(eq(battles.winnerId, userId));
-    // Delete battles where user is challenger or opponent
-    await db.delete(battles).where(eq(battles.challengerId, userId));
-    await db.delete(battles).where(eq(battles.opponentId, userId));
 
-    // Delete related workshop/team data via raw SQL for tables with userId
+    // Delete battles where user is challenger or opponent
+    await db.execute(sql`DELETE FROM battles WHERE challenger_id = ${userId} OR opponent_id = ${userId}`);
+
+    // 4. Workshop sub-records first, then workshops
+    // Get user's workshops to delete their enrollments/reviews/messages
+    const userWorkshops = await db.execute(sql`SELECT id FROM workshops WHERE coach_id = ${userId}`);
+    if (userWorkshops.rows && userWorkshops.rows.length > 0) {
+      for (const w of userWorkshops.rows) {
+        const wid = (w as any).id;
+        await db.execute(sql`DELETE FROM workshop_messages WHERE workshop_id = ${wid}`);
+        await db.execute(sql`DELETE FROM workshop_reviews WHERE workshop_id = ${wid}`);
+        await db.execute(sql`DELETE FROM workshop_enrollments WHERE workshop_id = ${wid}`);
+      }
+    }
     await db.execute(sql`DELETE FROM workshop_messages WHERE sender_id = ${userId} OR receiver_id = ${userId}`);
     await db.execute(sql`DELETE FROM workshop_reviews WHERE user_id = ${userId}`);
     await db.execute(sql`DELETE FROM workshop_enrollments WHERE user_id = ${userId}`);
     await db.execute(sql`DELETE FROM workshops WHERE coach_id = ${userId}`);
+
+    // 5. Team sub-records first, then teams
+    const userTeams = await db.execute(sql`SELECT id FROM teams WHERE coach_id = ${userId}`);
+    if (userTeams.rows && userTeams.rows.length > 0) {
+      for (const tm of userTeams.rows) {
+        const tid = (tm as any).id;
+        await db.execute(sql`DELETE FROM competition_results WHERE team_id = ${tid}`);
+        await db.execute(sql`DELETE FROM competition_registrations WHERE team_id = ${tid}`);
+        await db.execute(sql`DELETE FROM team_members WHERE team_id = ${tid}`);
+      }
+    }
     await db.execute(sql`DELETE FROM team_members WHERE user_id = ${userId}`);
     await db.execute(sql`DELETE FROM teams WHERE coach_id = ${userId}`);
+
+    // 6. Studio sub-records first, then studios
+    const userStudios = await db.execute(sql`SELECT id FROM studios WHERE owner_id = ${userId}`);
+    if (userStudios.rows && userStudios.rows.length > 0) {
+      for (const s of userStudios.rows) {
+        const sid = (s as any).id;
+        await db.execute(sql`DELETE FROM studio_availability WHERE studio_id = ${sid}`);
+        await db.execute(sql`DELETE FROM battle_studio_preferences WHERE studio_id = ${sid}`);
+        // Nullify studioId in battles referencing this studio
+        await db.execute(sql`UPDATE battles SET studio_id = NULL WHERE studio_id = ${sid}`);
+      }
+    }
     await db.execute(sql`DELETE FROM studios WHERE owner_id = ${userId}`);
+
+    // 7. Consents & deletion requests
     await db.execute(sql`DELETE FROM user_consents WHERE user_id = ${userId}`);
     await db.execute(sql`DELETE FROM data_deletion_requests WHERE user_id = ${userId}`);
+    await db.execute(sql`UPDATE data_deletion_requests SET processed_by = NULL WHERE processed_by = ${userId}`);
 
-    // Finally delete the user
+    // 8. Finally delete the user
     await db.delete(users).where(eq(users.id, userId));
 
     return NextResponse.json({ message: `${targetUser.username} silindi` });

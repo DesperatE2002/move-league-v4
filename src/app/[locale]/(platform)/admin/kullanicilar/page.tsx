@@ -110,11 +110,14 @@ export default function AdminUsersPage() {
     setDeletingId(userId);
     try {
       const res = await fetch(`/api/admin/users?userId=${userId}`, { method: "DELETE" });
+      const data = await res.json();
       if (res.ok) {
         setUsers((prev) => prev.filter((u) => u.id !== userId));
+      } else {
+        alert(data.error || (isTr ? "Silme başarısız" : "Delete failed"));
       }
     } catch {
-      // fail
+      alert(isTr ? "Sunucu hatası" : "Server error");
     } finally {
       setDeletingId(null);
       setConfirmDeleteId(null);
