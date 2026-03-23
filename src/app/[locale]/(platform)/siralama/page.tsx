@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Trophy, Loader2, TrendingUp, Medal, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DANCE_STYLES } from "@/lib/dance-styles";
 
 interface RankedUser {
   rank: number;
@@ -19,7 +20,6 @@ interface RankedUser {
   avatarUrl: string | null;
   city: string | null;
   country: string | null;
-  danceStyle: string | null;
 }
 
 export default function RankingsPage() {
@@ -31,19 +31,20 @@ export default function RankingsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [filterCountry, setFilterCountry] = useState("");
   const [filterCity, setFilterCity] = useState("");
+  const [activeStyle, setActiveStyle] = useState<string>(DANCE_STYLES[0]);
 
   useEffect(() => {
-    fetchRankings();
-  }, []);
+    fetchRankings(activeStyle);
+  }, [activeStyle]);
 
-  async function fetchRankings(country?: string, city?: string) {
+  async function fetchRankings(style: string, country?: string, city?: string) {
     setLoading(true);
     try {
       const params = new URLSearchParams();
+      params.set("style", style);
       if (country) params.set("country", country);
       if (city) params.set("city", city);
-      const qs = params.toString();
-      const res = await fetch(`/api/rankings${qs ? `?${qs}` : ""}`);
+      const res = await fetch(`/api/rankings?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setRankings(data.rankings);
@@ -56,14 +57,14 @@ export default function RankingsPage() {
   }
 
   function applyFilters() {
-    fetchRankings(filterCountry || undefined, filterCity || undefined);
+    fetchRankings(activeStyle, filterCountry || undefined, filterCity || undefined);
     setShowFilters(false);
   }
 
   function clearFilters() {
     setFilterCountry("");
     setFilterCity("");
-    fetchRankings();
+    fetchRankings(activeStyle);
     setShowFilters(false);
   }
 
@@ -89,6 +90,24 @@ export default function RankingsPage() {
         >
           <Filter className="w-5 h-5" />
         </button>
+      </div>
+
+      {/* Dance Style Tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {DANCE_STYLES.map((style) => (
+          <button
+            key={style}
+            onClick={() => setActiveStyle(style)}
+            className={cn(
+              "px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all",
+              activeStyle === style
+                ? "bg-ml-gold text-black"
+                : "bg-ml-dark-card text-ml-gray-400 border border-ml-dark-border hover:border-ml-gold/40 hover:text-ml-white"
+            )}
+          >
+            {style}
+          </button>
+        ))}
       </div>
 
       {/* Filter Panel */}

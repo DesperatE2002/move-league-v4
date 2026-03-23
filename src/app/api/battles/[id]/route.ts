@@ -541,13 +541,18 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
 
     // ELO calculation
     let ratingChange = 0;
+    const battleStyle = battle.danceStyle || null;
     if (battle.seasonId) {
+      const styleCondition = battleStyle
+        ? eq(dancerRatings.danceStyle, battleStyle)
+        : sql`${dancerRatings.danceStyle} IS NULL`;
+
       const [challengerRating, opponentRating] = await Promise.all([
         db.select().from(dancerRatings).where(
-          and(eq(dancerRatings.userId, battle.challengerId), eq(dancerRatings.seasonId, battle.seasonId))
+          and(eq(dancerRatings.userId, battle.challengerId), eq(dancerRatings.seasonId, battle.seasonId), styleCondition)
         ).limit(1),
         db.select().from(dancerRatings).where(
-          and(eq(dancerRatings.userId, battle.opponentId), eq(dancerRatings.seasonId, battle.seasonId))
+          and(eq(dancerRatings.userId, battle.opponentId), eq(dancerRatings.seasonId, battle.seasonId), styleCondition)
         ).limit(1),
       ]);
 
@@ -575,7 +580,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
           { uId: battle.opponentId, newR: isChWinner ? loserNewR : winnerNewR, won: !isChWinner },
         ]) {
           const existing = await db.select().from(dancerRatings).where(
-            and(eq(dancerRatings.userId, uId), eq(dancerRatings.seasonId, battle.seasonId))
+            and(eq(dancerRatings.userId, uId), eq(dancerRatings.seasonId, battle.seasonId), styleCondition)
           ).limit(1);
 
           if (existing.length > 0) {
@@ -591,6 +596,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
             await db.insert(dancerRatings).values({
               userId: uId,
               seasonId: battle.seasonId,
+              danceStyle: battleStyle,
               rating: newR,
               wins: won ? 1 : 0,
               losses: won ? 0 : 1,
@@ -603,7 +609,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
         // Draw — update totalBattles and draws for both
         for (const uId of [battle.challengerId, battle.opponentId]) {
           const existing = await db.select().from(dancerRatings).where(
-            and(eq(dancerRatings.userId, uId), eq(dancerRatings.seasonId, battle.seasonId))
+            and(eq(dancerRatings.userId, uId), eq(dancerRatings.seasonId, battle.seasonId), styleCondition)
           ).limit(1);
 
           if (existing.length > 0) {
@@ -616,6 +622,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
             await db.insert(dancerRatings).values({
               userId: uId,
               seasonId: battle.seasonId,
+              danceStyle: battleStyle,
               rating: 1000,
               draws: 1,
               totalBattles: 1,

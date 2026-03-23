@@ -38,15 +38,14 @@ export async function GET() {
       const ratingArr = await db
         .select()
         .from(dancerRatings)
-        .where(and(eq(dancerRatings.userId, userId), eq(dancerRatings.seasonId, activeSeason.id)))
-        .limit(1);
+        .where(and(eq(dancerRatings.userId, userId), eq(dancerRatings.seasonId, activeSeason.id)));
 
-      if (ratingArr[0]) {
-        rating = ratingArr[0].rating ?? 1000;
-        wins = ratingArr[0].wins ?? 0;
-        losses = ratingArr[0].losses ?? 0;
-        totalBattles = ratingArr[0].totalBattles ?? 0;
-        peakRating = ratingArr[0].peakRating ?? 1000;
+      if (ratingArr.length > 0) {
+        rating = Math.max(...ratingArr.map(r => r.rating ?? 1000));
+        wins = ratingArr.reduce((s, r) => s + (r.wins ?? 0), 0);
+        losses = ratingArr.reduce((s, r) => s + (r.losses ?? 0), 0);
+        totalBattles = ratingArr.reduce((s, r) => s + (r.totalBattles ?? 0), 0);
+        peakRating = Math.max(...ratingArr.map(r => r.peakRating ?? 1000));
       }
     }
 

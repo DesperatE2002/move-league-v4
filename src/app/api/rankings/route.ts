@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { dancerRatings, seasons } from "@/db/schema/seasons";
 import { users } from "@/db/schema/users";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
+import { DANCE_STYLES } from "@/lib/dance-styles";
 
 // GET /api/rankings — Sıralama tablosu
 export async function GET(req: NextRequest) {
@@ -10,7 +11,13 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const country = searchParams.get("country");
     const city = searchParams.get("city");
+    const style = searchParams.get("style");
     const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
+
+    // Validate dance style
+    if (!style || !DANCE_STYLES.includes(style as typeof DANCE_STYLES[number])) {
+      return NextResponse.json({ rankings: [], season: null });
+    }
 
     // Get active season
     const activeSeason = await db
@@ -25,8 +32,11 @@ export async function GET(req: NextRequest) {
 
     const seasonId = activeSeason[0].id;
 
-    // Build query with filters
-    const conditions = [eq(dancerRatings.seasonId, seasonId)];
+    // Build query with filters — per dance style
+    const conditions = [
+      eq(dancerRatings.seasonId, seasonId),
+      eq(dancerRatings.danceStyle, style),
+    ];
 
     let rankings = await db
       .select({
@@ -43,7 +53,6 @@ export async function GET(req: NextRequest) {
         avatarUrl: users.avatarUrl,
         city: users.city,
         country: users.country,
-        danceStyle: users.danceStyle,
       })
       .from(dancerRatings)
       .innerJoin(users, eq(dancerRatings.userId, users.id))

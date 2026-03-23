@@ -76,14 +76,13 @@ export default async function PublicProfilePage({
           eq(dancerRatings.userId, id),
           eq(dancerRatings.seasonId, activeSeason.id)
         )
-      )
-      .limit(1);
+      );
 
-    if (ratingArr[0]) {
-      rating = ratingArr[0].rating ?? 1000;
-      wins = ratingArr[0].wins ?? 0;
-      losses = ratingArr[0].losses ?? 0;
-      totalBattles = ratingArr[0].totalBattles ?? 0;
+    if (ratingArr.length > 0) {
+      rating = Math.max(...ratingArr.map(r => r.rating ?? 1000));
+      wins = ratingArr.reduce((s, r) => s + (r.wins ?? 0), 0);
+      losses = ratingArr.reduce((s, r) => s + (r.losses ?? 0), 0);
+      totalBattles = ratingArr.reduce((s, r) => s + (r.totalBattles ?? 0), 0);
     }
   }
 

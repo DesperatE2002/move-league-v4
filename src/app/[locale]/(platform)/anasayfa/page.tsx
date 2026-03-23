@@ -43,10 +43,9 @@ export default async function HomePage({
       const ratingArr = await db
         .select()
         .from(dancerRatings)
-        .where(and(eq(dancerRatings.userId, userId), eq(dancerRatings.seasonId, activeSeason.id)))
-        .limit(1);
-      if (ratingArr[0]) {
-        rating = ratingArr[0].rating ?? 1000;
+        .where(and(eq(dancerRatings.userId, userId), eq(dancerRatings.seasonId, activeSeason.id)));
+      if (ratingArr.length > 0) {
+        rating = Math.max(...ratingArr.map(r => r.rating ?? 1000));
       }
     }
   }

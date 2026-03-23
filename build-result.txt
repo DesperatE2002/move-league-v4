@@ -1,0 +1,128 @@
+Ôû- Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+node : ÔÜá The "middleware" file convention is deprecated. Please use "proxy" i
+nstead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+At line:1 char:1
++ node node_modules\next\dist\bin\next build 2>&1 | Out-String | Set-Co ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ÔÜá The "middle...leware-to-proxy 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 73s
+  Running TypeScript ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/90) ...
+  Generating static pages using 3 workers (22/90) 
+  Generating static pages using 3 workers (44/90) 
+  Generating static pages using 3 workers (67/90) 
+Ô£ô Generating static pages using 3 workers (90/90) in 3.6s
+  Finalizing page optimization ...
+
+Route (app)
+Ôöî Ôùï /
+Ôö£ Ôùï /_not-found
+Ôö£ ãÆ /[locale]
+Ôö£ ãÆ /[locale]/admin
+Ôö£ ãÆ /[locale]/admin/atolyeler
+Ôö£ ãÆ /[locale]/admin/duellolar
+Ôö£ ãÆ /[locale]/admin/hakemler
+Ôö£ ãÆ /[locale]/admin/kullanicilar
+Ôö£ ãÆ /[locale]/admin/rozetler
+Ôö£ ãÆ /[locale]/admin/sezonlar
+Ôö£ ãÆ /[locale]/admin/yarisma
+Ôö£ ãÆ /[locale]/anasayfa
+Ôö£ ãÆ /[locale]/atolyeler
+Ôö£ ãÆ /[locale]/atolyeler/[id]
+Ôö£ ãÆ /[locale]/atolyeler/olustur
+Ôö£ ãÆ /[locale]/atolyeler/yonetim
+Ôö£ ãÆ /[locale]/ayarlar
+Ôö£ ãÆ /[locale]/bildirimler
+Ôö£ ãÆ /[locale]/duellolar
+Ôö£ ãÆ /[locale]/duellolar/[id]
+Ôö£ ãÆ /[locale]/duellolar/yeni
+Ôö£ ÔùÅ /[locale]/email-dogrula
+Ôöé Ôö£ /tr/email-dogrula
+Ôöé Ôöö /en/email-dogrula
+Ôö£ ÔùÅ /[locale]/giris
+Ôöé Ôö£ /tr/giris
+Ôöé Ôöö /en/giris
+Ôö£ ÔùÅ /[locale]/gizlilik
+Ôöé Ôö£ /tr/gizlilik
+Ôöé Ôöö /en/gizlilik
+Ôö£ ÔùÅ /[locale]/kayit
+Ôöé Ôö£ /tr/kayit
+Ôöé Ôöö /en/kayit
+Ôö£ ÔùÅ /[locale]/kullanim-kosullari
+Ôöé Ôö£ /tr/kullanim-kosullari
+Ôöé Ôöö /en/kullanim-kosullari
+Ôö£ ÔùÅ /[locale]/kvkk
+Ôöé Ôö£ /tr/kvkk
+Ôöé Ôöö /en/kvkk
+Ôö£ ãÆ /[locale]/profil
+Ôö£ ãÆ /[locale]/profil/[id]
+Ôö£ ÔùÅ /[locale]/sifre-sifirla
+Ôöé Ôö£ /tr/sifre-sifirla
+Ôöé Ôöö /en/sifre-sifirla
+Ôö£ ãÆ /[locale]/siralama
+Ôö£ ãÆ /[locale]/takimlar
+Ôö£ ãÆ /[locale]/takimlar/[id]
+Ôö£ ãÆ /[locale]/takimlar/olustur
+Ôö£ ãÆ /[locale]/yarisma
+Ôö£ ãÆ /[locale]/yarisma/[id]
+Ôö£ ãÆ /api/admin/announcements
+Ôö£ ãÆ /api/admin/battles
+Ôö£ ãÆ /api/admin/judges
+Ôö£ ãÆ /api/admin/stats
+Ôö£ ãÆ /api/admin/users
+Ôö£ ãÆ /api/admin/workshops
+Ôö£ ãÆ /api/auth/[...nextauth]
+Ôö£ ãÆ /api/auth/forgot-password
+Ôö£ ãÆ /api/auth/reset-password
+Ôö£ ãÆ /api/auth/verify-email
+Ôö£ ãÆ /api/badges
+Ôö£ ãÆ /api/badges/check
+Ôö£ ãÆ /api/battles
+Ôö£ ãÆ /api/battles/[id]
+Ôö£ ãÆ /api/competitions
+Ôö£ ãÆ /api/competitions/[id]
+Ôö£ ãÆ /api/competitions/[id]/register
+Ôö£ ãÆ /api/competitions/[id]/results
+Ôö£ ãÆ /api/notifications
+Ôö£ ãÆ /api/notifications/[id]
+Ôö£ ãÆ /api/notifications/subscribe-push
+Ôö£ ãÆ /api/rankings
+Ôö£ ãÆ /api/register
+Ôö£ ãÆ /api/seasons
+Ôö£ ãÆ /api/studios
+Ôö£ ãÆ /api/studios/[id]
+Ôö£ ãÆ /api/studios/[id]/availability
+Ôö£ ãÆ /api/teams
+Ôö£ ãÆ /api/teams/[id]
+Ôö£ ãÆ /api/teams/[id]/members
+Ôö£ ãÆ /api/users/[id]
+Ôö£ ãÆ /api/users/[id]/badges
+Ôö£ ãÆ /api/users/[id]/stats
+Ôö£ ãÆ /api/users/me
+Ôö£ ãÆ /api/users/me/consents
+Ôö£ ãÆ /api/users/me/data-export
+Ôö£ ãÆ /api/users/me/deletion-request
+Ôö£ ãÆ /api/users/search
+Ôö£ ãÆ /api/users/stats
+Ôö£ ãÆ /api/workshops
+Ôö£ ãÆ /api/workshops/[id]
+Ôö£ ãÆ /api/workshops/[id]/enroll
+Ôö£ ãÆ /api/workshops/[id]/messages
+Ôö£ ãÆ /api/workshops/[id]/reviews
+Ôöö ãÆ /api/workshops/my
+
+
+ãÆ Proxy (Middleware)
+
+Ôùï  (Static)   prerendered as static content
+ÔùÅ  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ãÆ  (Dynamic)  server-rendered on demand
+
+

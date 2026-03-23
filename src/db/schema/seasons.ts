@@ -26,6 +26,7 @@ export const dancerRatings = pgTable("dancer_ratings", {
   seasonId: uuid("season_id")
     .references(() => seasons.id)
     .notNull(),
+  danceStyle: varchar("dance_style", { length: 100 }),
   rating: integer("rating").default(1000),
   wins: integer("wins").default(0),
   losses: integer("losses").default(0),

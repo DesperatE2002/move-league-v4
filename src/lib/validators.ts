@@ -48,7 +48,7 @@ export const profileUpdateSchema = z.object({
 
 export const createBattleSchema = z.object({
   opponentId: z.string().uuid("Geçersiz rakip ID"),
-  danceStyle: z.string().min(1, "Dans stili seçmelisiniz").max(100).optional(),
+  danceStyle: z.string().min(1, "Dans stili seçmelisiniz").max(100),
 });
 
 export const battleScoreSchema = z.object({
