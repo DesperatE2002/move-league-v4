@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { auth } from "@/lib/auth";
 import { getTranslations } from "next-intl/server";
 import { Swords, Trophy, GraduationCap, Users, TrendingUp, Flame, Shield } from "lucide-react";

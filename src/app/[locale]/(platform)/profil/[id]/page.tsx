@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { dancerRatings } from "@/db/schema/seasons";

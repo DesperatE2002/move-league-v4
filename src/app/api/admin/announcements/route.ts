@@ -3,9 +3,9 @@ import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { notifications } from "@/db/schema/notifications";
 import { auth } from "@/lib/auth";
-import { ne } from "drizzle-orm";
+import { ne, eq } from "drizzle-orm";
 
-// POST /api/admin/announcements — Send announcement to all users
+// POST /api/admin/announcements — Send announcement (bulk to all or to specific user)
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
@@ -14,13 +14,36 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, message } = body;
+    const { title, message, userId } = body as { title: string; message: string; userId?: string };
 
     if (!title || !message) {
       return NextResponse.json({ error: "Başlık ve mesaj zorunlu" }, { status: 400 });
     }
 
-    // Get all active user IDs
+    // Individual notification to a specific user
+    if (userId) {
+      const [targetUser] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (!targetUser) {
+        return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 });
+      }
+
+      await db.insert(notifications).values({
+        userId,
+        type: "admin_announcement" as const,
+        title,
+        message,
+        channel: "in_app" as const,
+      });
+
+      return NextResponse.json({ message: "Bildirim gönderildi", count: 1 }, { status: 201 });
+    }
+
+    // Bulk notification to all users
     const allUsers = await db
       .select({ id: users.id })
       .from(users)
