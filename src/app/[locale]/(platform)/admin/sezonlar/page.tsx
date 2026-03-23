@@ -12,6 +12,11 @@ import {
   Plus,
   CheckCircle,
   Circle,
+  Trash2,
+  X,
+  Trophy,
+  Medal,
+  Award,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +26,9 @@ interface Season {
   startDate: string;
   endDate: string;
   isActive: boolean;
+  firstPrize: string | null;
+  secondPrize: string | null;
+  thirdPrize: string | null;
   createdAt: string;
 }
 
@@ -34,7 +42,10 @@ export default function AdminSeasonsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ name: "", startDate: "", endDate: "" });
+  const [form, setForm] = useState({ name: "", startDate: "", endDate: "", firstPrize: "", secondPrize: "", thirdPrize: "" });
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const isTr = locale === "tr";
 
   useEffect(() => {
     fetchSeasons();
@@ -65,13 +76,28 @@ export default function AdminSeasonsPage() {
       });
       if (res.ok) {
         setShowForm(false);
-        setForm({ name: "", startDate: "", endDate: "" });
+        setForm({ name: "", startDate: "", endDate: "", firstPrize: "", secondPrize: "", thirdPrize: "" });
         fetchSeasons();
       }
     } catch {
       // fail
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/seasons?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setSeasons((prev) => prev.filter((s) => s.id !== id));
+      }
+    } catch {
+      // fail
+    } finally {
+      setDeletingId(null);
+      setConfirmDeleteId(null);
     }
   }
 
@@ -132,6 +158,45 @@ export default function AdminSeasonsPage() {
               />
             </div>
           </div>
+
+          {/* Prizes */}
+          <div className="border-t border-ml-dark-border pt-3 space-y-2">
+            <p className="text-xs font-semibold text-ml-gold flex items-center gap-1.5">
+              <Trophy className="w-3.5 h-3.5" />
+              {isTr ? "Sezon Ödülleri" : "Season Prizes"}
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-sm">🥇</span>
+              <input
+                type="text"
+                value={form.firstPrize}
+                onChange={(e) => setForm({ ...form, firstPrize: e.target.value })}
+                placeholder={isTr ? "1. ödül (ör: Altın Kupa + 1000 TL)" : "1st prize"}
+                className="flex-1 bg-ml-dark-hover border border-ml-dark-border rounded-lg px-3 py-2 text-sm text-ml-white placeholder:text-ml-gray-500 focus:outline-none focus:ring-2 focus:ring-ml-gold/40"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm">🥈</span>
+              <input
+                type="text"
+                value={form.secondPrize}
+                onChange={(e) => setForm({ ...form, secondPrize: e.target.value })}
+                placeholder={isTr ? "2. ödül" : "2nd prize"}
+                className="flex-1 bg-ml-dark-hover border border-ml-dark-border rounded-lg px-3 py-2 text-sm text-ml-white placeholder:text-ml-gray-500 focus:outline-none focus:ring-2 focus:ring-ml-gold/40"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm">🥉</span>
+              <input
+                type="text"
+                value={form.thirdPrize}
+                onChange={(e) => setForm({ ...form, thirdPrize: e.target.value })}
+                placeholder={isTr ? "3. ödül" : "3rd prize"}
+                className="flex-1 bg-ml-dark-hover border border-ml-dark-border rounded-lg px-3 py-2 text-sm text-ml-white placeholder:text-ml-gray-500 focus:outline-none focus:ring-2 focus:ring-ml-gold/40"
+              />
+            </div>
+          </div>
+
           <button
             onClick={handleCreate}
             disabled={creating || !form.name || !form.startDate || !form.endDate}
@@ -164,23 +229,64 @@ export default function AdminSeasonsPage() {
               )}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
                   {season.isActive ? (
-                    <CheckCircle className="w-4 h-4 text-ml-gold" />
+                    <CheckCircle className="w-4 h-4 text-ml-gold shrink-0" />
                   ) : (
-                    <Circle className="w-4 h-4 text-ml-gray-500" />
+                    <Circle className="w-4 h-4 text-ml-gray-500 shrink-0" />
                   )}
-                  <span className="text-sm font-semibold text-ml-white">{season.name}</span>
+                  <span className="text-sm font-semibold text-ml-white truncate">{season.name}</span>
+                  {season.isActive && (
+                    <span className="text-xs bg-ml-gold/10 text-ml-gold px-2 py-0.5 rounded-full font-medium shrink-0">
+                      {t("active")}
+                    </span>
+                  )}
                 </div>
-                {season.isActive && (
-                  <span className="text-xs bg-ml-gold/10 text-ml-gold px-2 py-0.5 rounded-full font-medium">
-                    {t("active")}
-                  </span>
+
+                {/* Delete */}
+                {confirmDeleteId === season.id ? (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => handleDelete(season.id)}
+                      disabled={deletingId === season.id}
+                      className="px-2 py-1 rounded bg-ml-error text-white text-[10px] font-bold disabled:opacity-50"
+                    >
+                      {deletingId === season.id ? <Loader2 className="w-3 h-3 animate-spin" /> : (isTr ? "Evet" : "Yes")}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="px-2 py-1 rounded bg-ml-dark-hover text-ml-gray-400 text-[10px] font-bold"
+                    >
+                      {isTr ? "İptal" : "Cancel"}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDeleteId(season.id)}
+                    className="p-1.5 rounded-lg text-ml-error hover:bg-ml-error/20 transition-all shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 )}
               </div>
               <p className="text-xs text-ml-gray-400 mt-2 ml-6">
                 {new Date(season.startDate).toLocaleDateString("tr-TR")} — {new Date(season.endDate).toLocaleDateString("tr-TR")}
               </p>
+
+              {/* Prizes */}
+              {(season.firstPrize || season.secondPrize || season.thirdPrize) && (
+                <div className="mt-2 ml-6 space-y-0.5">
+                  {season.firstPrize && (
+                    <p className="text-xs text-ml-gold">🥇 {season.firstPrize}</p>
+                  )}
+                  {season.secondPrize && (
+                    <p className="text-xs text-ml-gray-300">🥈 {season.secondPrize}</p>
+                  )}
+                  {season.thirdPrize && (
+                    <p className="text-xs text-ml-gray-400">🥉 {season.thirdPrize}</p>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

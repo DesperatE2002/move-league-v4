@@ -64,6 +64,16 @@ export async function POST(req: NextRequest) {
     let fileUrl: string | null = null;
     let fileName: string | null = null;
 
+    // Check blob token before attempting uploads
+    if ((image && image.size > 0) || (file && file.size > 0)) {
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        return NextResponse.json(
+          { error: "Dosya yükleme servisi yapılandırılmamış. Vercel Blob token gerekli." },
+          { status: 500 }
+        );
+      }
+    }
+
     // Upload image if provided
     if (image && image.size > 0) {
       if (image.size > 5 * 1024 * 1024) {

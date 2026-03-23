@@ -15,6 +15,9 @@ export const seasons = pgTable("seasons", {
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
   isActive: boolean("is_active").default(false),
+  firstPrize: varchar("first_prize", { length: 300 }),
+  secondPrize: varchar("second_prize", { length: 300 }),
+  thirdPrize: varchar("third_prize", { length: 300 }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
