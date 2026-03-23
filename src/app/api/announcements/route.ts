@@ -5,7 +5,6 @@ import { users } from "@/db/schema/users";
 import { notifications } from "@/db/schema/notifications";
 import { auth } from "@/lib/auth";
 import { eq, desc, ne } from "drizzle-orm";
-import { put, del } from "@vercel/blob";
 
 // GET /api/announcements — List all published announcements
 export async function GET() {
@@ -20,8 +19,8 @@ export async function GET() {
         id: announcements.id,
         title: announcements.title,
         content: announcements.content,
-        imageUrl: announcements.imageUrl,
-        fileUrl: announcements.fileUrl,
+        hasImage: announcements.imageData,
+        hasFile: announcements.fileData,
         fileName: announcements.fileName,
         isPublished: announcements.isPublished,
         createdAt: announcements.createdAt,
@@ -34,7 +33,21 @@ export async function GET() {
       .orderBy(desc(announcements.createdAt))
       .limit(50);
 
-    return NextResponse.json({ announcements: list });
+    // Don't send binary data in list — just send boolean flags + serve URLs
+    const mapped = list.map((a) => ({
+      id: a.id,
+      title: a.title,
+      content: a.content,
+      fileName: a.fileName,
+      isPublished: a.isPublished,
+      createdAt: a.createdAt,
+      authorName: a.authorName,
+      authorSurname: a.authorSurname,
+      imageUrl: a.hasImage ? `/api/announcements/${a.id}/image` : null,
+      fileUrl: a.hasFile ? `/api/announcements/${a.id}/file` : null,
+    }));
+
+    return NextResponse.json({ announcements: mapped });
   } catch (error) {
     console.error("Get announcements error:", error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
@@ -60,42 +73,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Başlık ve içerik zorunlu" }, { status: 400 });
     }
 
-    let imageUrl: string | null = null;
-    let fileUrl: string | null = null;
+    let imageData: string | null = null;
+    let imageType: string | null = null;
+    let fileData: string | null = null;
+    let fileType: string | null = null;
     let fileName: string | null = null;
 
-    // Check blob token before attempting uploads
-    if ((image && image.size > 0) || (file && file.size > 0)) {
-      if (!process.env.BLOB_READ_WRITE_TOKEN) {
-        return NextResponse.json(
-          { error: "Dosya yükleme servisi yapılandırılmamış. Vercel Blob token gerekli." },
-          { status: 500 }
-        );
-      }
-    }
-
-    // Upload image if provided
+    // Store image as base64 in DB
     if (image && image.size > 0) {
       if (image.size > 5 * 1024 * 1024) {
         return NextResponse.json({ error: "Görsel 5MB'dan büyük olamaz" }, { status: 400 });
       }
-      const blob = await put(`announcements/img-${Date.now()}-${image.name}`, image, {
-        access: "public",
-        contentType: image.type,
-      });
-      imageUrl = blob.url;
+      const buffer = Buffer.from(await image.arrayBuffer());
+      imageData = buffer.toString("base64");
+      imageType = image.type;
     }
 
-    // Upload file if provided
+    // Store file as base64 in DB
     if (file && file.size > 0) {
-      if (file.size > 20 * 1024 * 1024) {
-        return NextResponse.json({ error: "Dosya 20MB'dan büyük olamaz" }, { status: 400 });
+      if (file.size > 10 * 1024 * 1024) {
+        return NextResponse.json({ error: "Dosya 10MB'dan büyük olamaz" }, { status: 400 });
       }
-      const blob = await put(`announcements/file-${Date.now()}-${file.name}`, file, {
-        access: "public",
-        contentType: file.type,
-      });
-      fileUrl = blob.url;
+      const buffer = Buffer.from(await file.arrayBuffer());
+      fileData = buffer.toString("base64");
+      fileType = file.type;
       fileName = file.name;
     }
 
@@ -106,8 +107,10 @@ export async function POST(req: NextRequest) {
         authorId: session.user.id,
         title: title.trim(),
         content: content.trim(),
-        imageUrl,
-        fileUrl,
+        imageData,
+        imageType,
+        fileData,
+        fileType,
         fileName,
       })
       .returning();
@@ -155,24 +158,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Duyuru ID gerekli" }, { status: 400 });
     }
 
-    const [existing] = await db
-      .select()
-      .from(announcements)
-      .where(eq(announcements.id, id))
-      .limit(1);
-
-    if (!existing) {
-      return NextResponse.json({ error: "Duyuru bulunamadı" }, { status: 404 });
-    }
-
-    // Delete blob files
-    try {
-      if (existing.imageUrl) await del(existing.imageUrl);
-      if (existing.fileUrl) await del(existing.fileUrl);
-    } catch {
-      // blob delete may fail silently, continue
-    }
-
+    // Delete announcement — files stored in DB are deleted with the row
     await db.delete(announcements).where(eq(announcements.id, id));
 
     return NextResponse.json({ message: "Duyuru silindi" });

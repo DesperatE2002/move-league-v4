@@ -94,8 +94,8 @@ export default function AdminAnnouncementsPage() {
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 20 * 1024 * 1024) {
-      alert(isTr ? "Dosya 20MB'dan büyük olamaz" : "File must be under 20MB");
+    if (file.size > 10 * 1024 * 1024) {
+      alert(isTr ? "Dosya 10MB'dan büyük olamaz" : "File must be under 10MB");
       return;
     }
     setDocFile(file);
