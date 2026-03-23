@@ -23,6 +23,7 @@
     "rankings": "Sıralama",
     "competitions": "Yarışmalar",
     "notifications": "Bildirimler",
+    "announcements": "Duyurular",
     "profile": "Profil",
     "settings": "Ayarlar",
     "admin": "Yönetim",
@@ -236,7 +237,9 @@
     "sendAnnouncement": "Duyuru Gönder",
     "announcementTitle": "Duyuru Başlığı",
     "announcementMessage": "Duyuru Mesajı",
-    "announcementSent": "Duyuru gönderildi"
+    "announcementSent": "Duyuru gönderildi",
+    "announcementManagement": "Duyuru Yönetimi",
+    "announcementManagementDesc": "Duyuru oluştur, görsel ve dosya ekle"
   },
   "workshops": {
     "create": "Atölye Oluştur",

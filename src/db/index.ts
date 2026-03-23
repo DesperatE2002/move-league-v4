@@ -8,6 +8,7 @@ import * as badges from "./schema/badges";
 import * as workshops from "./schema/workshops";
 import * as teams from "./schema/teams";
 import * as consents from "./schema/consents";
+import * as announcements from "./schema/announcements";
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -21,6 +22,7 @@ export const db = drizzle(sql, {
     ...workshops,
     ...teams,
     ...consents,
+    ...announcements,
   },
 });
 

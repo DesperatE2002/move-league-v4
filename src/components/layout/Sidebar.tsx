@@ -15,6 +15,7 @@ import {
   GraduationCap,
   Users,
   Medal,
+  Megaphone,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -57,6 +58,7 @@ export default function Sidebar({ role }: { role: string }) {
     { key: "teams", href: `/${locale}/takimlar`, icon: <Users className="w-5 h-5" /> },
     { key: "competitions", href: `/${locale}/yarisma`, icon: <Medal className="w-5 h-5" /> },
     { key: "rankings", href: `/${locale}/siralama`, icon: <Trophy className="w-5 h-5" /> },
+    { key: "announcements", href: `/${locale}/duyurular`, icon: <Megaphone className="w-5 h-5" /> },
     { key: "notifications", href: `/${locale}/bildirimler`, icon: <Bell className="w-5 h-5" /> },
     { key: "profile", href: `/${locale}/profil`, icon: <User className="w-5 h-5" /> },
   ];

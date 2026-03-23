@@ -16,6 +16,7 @@ import {
   GraduationCap,
   Gavel,
   Medal,
+  Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -113,6 +114,13 @@ export default function AdminPage() {
       icon: <Medal className="w-5 h-5" />,
       href: `/${locale}/admin/yarisma`,
       color: "text-pink-400",
+    },
+    {
+      title: t("announcementManagement"),
+      desc: t("announcementManagementDesc"),
+      icon: <Megaphone className="w-5 h-5" />,
+      href: `/${locale}/admin/duyurular`,
+      color: "text-amber-400",
     },
   ];
 

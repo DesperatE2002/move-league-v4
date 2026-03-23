@@ -23,6 +23,7 @@
     "rankings": "Rankings",
     "competitions": "Competitions",
     "notifications": "Notifications",
+    "announcements": "Announcements",
     "profile": "Profile",
     "settings": "Settings",
     "admin": "Admin",
@@ -236,7 +237,9 @@
     "sendAnnouncement": "Send Announcement",
     "announcementTitle": "Announcement Title",
     "announcementMessage": "Announcement Message",
-    "announcementSent": "Announcement sent"
+    "announcementSent": "Announcement sent",
+    "announcementManagement": "Announcement Management",
+    "announcementManagementDesc": "Create announcements with images and files"
   },
   "workshops": {
     "create": "Create Workshop",
