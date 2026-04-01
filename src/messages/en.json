@@ -56,7 +56,10 @@
       "admin": "Admin"
     },
     "selectDanceStyles": "Your Dance Styles",
-    "maxStyles": "You can select up to 5 styles"
+    "maxStyles": "You can select up to 5 styles",
+    "googleSignIn": "Sign in with Google",
+    "googleSignUp": "Sign up with Google",
+    "or": "or"
   },
   "profile": {
     "title": "Profile",

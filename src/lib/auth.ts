@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { eq } from "drizzle-orm";
@@ -21,8 +22,24 @@ declare module "next-auth" {
   }
 }
 
+function generateUsername(email: string): string {
+  const base = email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "_").slice(0, 40);
+  const suffix = Math.floor(Math.random() * 9000) + 1000;
+  return `${base}_${suffix}`;
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID!,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+        },
+      },
+    }),
     Credentials({
       name: "credentials",
       credentials: {
@@ -73,14 +90,77 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
-      if (user) {
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        const email = user.email;
+        if (!email) return false;
+
+        const existing = await db
+          .select()
+          .from(users)
+          .where(eq(users.email, email))
+          .limit(1);
+
+        if (existing[0]) {
+          if (!existing[0].isActive) return false;
+          return true;
+        }
+
+        // Auto-create user on first Google sign-in
+        const nameParts = (user.name || "").split(" ");
+        const firstName = nameParts[0] || "User";
+        const lastName = nameParts.slice(1).join(" ") || "-";
+        const username = generateUsername(email);
+
+        await db.insert(users).values({
+          email,
+          name: firstName,
+          surname: lastName,
+          username,
+          role: "dancer",
+          avatarUrl: user.image || null,
+          emailVerified: true,
+          kvkkConsent: true,
+          termsConsent: true,
+          consentAt: new Date(),
+          language: "tr",
+        });
+
+        return true;
+      }
+      return true;
+    },
+    async jwt({ token, user, account, trigger, session }) {
+      // On credentials sign-in, user object has custom fields
+      if (user && account?.provider === "credentials") {
         token.id = (user as any).id;
         token.surname = (user as any).surname;
         token.username = (user as any).username;
         token.role = (user as any).role;
         token.avatarUrl = (user as any).avatarUrl;
         token.language = (user as any).language;
+      }
+
+      // On Google sign-in, look up user from DB
+      if (user && account?.provider === "google") {
+        const email = user.email;
+        if (email) {
+          const dbUser = await db
+            .select()
+            .from(users)
+            .where(eq(users.email, email))
+            .limit(1);
+
+          if (dbUser[0]) {
+            token.id = dbUser[0].id;
+            token.name = dbUser[0].name;
+            token.surname = dbUser[0].surname;
+            token.username = dbUser[0].username;
+            token.role = dbUser[0].role;
+            token.avatarUrl = dbUser[0].avatarUrl;
+            token.language = dbUser[0].language;
+          }
+        }
       }
 
       if (trigger === "update" && session) {
