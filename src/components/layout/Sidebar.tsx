@@ -16,6 +16,7 @@ import {
   Users,
   Medal,
   Megaphone,
+  CalendarDays,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -60,6 +61,9 @@ export default function Sidebar({ role }: { role: string }) {
     { key: "rankings", href: `/${locale}/siralama`, icon: <Trophy className="w-5 h-5" /> },
     { key: "announcements", href: `/${locale}/duyurular`, icon: <Megaphone className="w-5 h-5" /> },
     { key: "notifications", href: `/${locale}/bildirimler`, icon: <Bell className="w-5 h-5" /> },
+    ...(role === "judge" || role === "admin"
+      ? [{ key: "schedule", href: `/${locale}/hakem-programi`, icon: <CalendarDays className="w-5 h-5" /> }]
+      : []),
     { key: "profile", href: `/${locale}/profil`, icon: <User className="w-5 h-5" /> },
   ];
 

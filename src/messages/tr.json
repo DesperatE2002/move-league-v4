@@ -24,6 +24,7 @@
     "competitions": "Yarışmalar",
     "notifications": "Bildirimler",
     "announcements": "Duyurular",
+    "schedule": "Hakem Programı",
     "profile": "Profil",
     "settings": "Ayarlar",
     "admin": "Yönetim",
@@ -239,7 +240,9 @@
     "announcementMessage": "Duyuru Mesajı",
     "announcementSent": "Duyuru gönderildi",
     "announcementManagement": "Duyuru Yönetimi",
-    "announcementManagementDesc": "Duyuru oluştur, görsel ve dosya ekle"
+    "announcementManagementDesc": "Duyuru oluştur, görsel ve dosya ekle",
+    "weeklySchedule": "Haftalık Program",
+    "weeklyScheduleDesc": "Hakem programını görüntüle ve yönet"
   },
   "workshops": {
     "create": "Atölye Oluştur",

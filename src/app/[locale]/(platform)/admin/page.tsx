@@ -17,6 +17,7 @@ import {
   Gavel,
   Medal,
   Megaphone,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -121,6 +122,13 @@ export default function AdminPage() {
       icon: <Megaphone className="w-5 h-5" />,
       href: `/${locale}/admin/duyurular`,
       color: "text-amber-400",
+    },
+    {
+      title: t("weeklySchedule"),
+      desc: t("weeklyScheduleDesc"),
+      icon: <CalendarDays className="w-5 h-5" />,
+      href: `/${locale}/admin/program`,
+      color: "text-cyan-400",
     },
   ];
 

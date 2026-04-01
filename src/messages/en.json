@@ -24,6 +24,7 @@
     "competitions": "Competitions",
     "notifications": "Notifications",
     "announcements": "Announcements",
+    "schedule": "Judge Schedule",
     "profile": "Profile",
     "settings": "Settings",
     "admin": "Admin",
@@ -239,7 +240,9 @@
     "announcementMessage": "Announcement Message",
     "announcementSent": "Announcement sent",
     "announcementManagement": "Announcement Management",
-    "announcementManagementDesc": "Create announcements with images and files"
+    "announcementManagementDesc": "Create announcements with images and files",
+    "weeklySchedule": "Weekly Schedule",
+    "weeklyScheduleDesc": "View and manage judge schedules"
   },
   "workshops": {
     "create": "Create Workshop",
