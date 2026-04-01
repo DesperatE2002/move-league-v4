@@ -26,6 +26,7 @@
     "announcements": "Duyurular",
     "schedule": "Hakem Programı",
     "profile": "Profil",
+    "feedback": "Geri Bildirim",
     "settings": "Ayarlar",
     "admin": "Yönetim",
     "logout": "Çıkış Yap"
@@ -242,7 +243,9 @@
     "announcementManagement": "Duyuru Yönetimi",
     "announcementManagementDesc": "Duyuru oluştur, görsel ve dosya ekle",
     "weeklySchedule": "Haftalık Program",
-    "weeklyScheduleDesc": "Hakem programını görüntüle ve yönet"
+    "weeklyScheduleDesc": "Hakem programını görüntüle ve yönet",
+    "feedbackManagement": "Geri Bildirimler",
+    "feedbackManagementDesc": "Kullanıcı geri bildirimlerini görüntüle ve yönet"
   },
   "workshops": {
     "create": "Atölye Oluştur",

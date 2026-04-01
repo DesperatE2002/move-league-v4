@@ -14,6 +14,7 @@ import {
   Settings,
   Shield,
   LogOut,
+  MessageSquarePlus,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
@@ -73,9 +74,9 @@ export default function BottomNav({ role }: { role: string }) {
       icon: <Bell className="w-5 h-5" />,
     },
     {
-      key: "profile",
-      href: `/${locale}/profil`,
-      icon: <User className="w-5 h-5" />,
+      key: "feedback",
+      href: `/${locale}/geri-bildirim`,
+      icon: <MessageSquarePlus className="w-5 h-5" />,
     },
   ];
 

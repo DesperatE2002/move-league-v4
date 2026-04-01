@@ -18,6 +18,7 @@ import {
   Medal,
   Megaphone,
   CalendarDays,
+  MessageSquarePlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -129,6 +130,13 @@ export default function AdminPage() {
       icon: <CalendarDays className="w-5 h-5" />,
       href: `/${locale}/admin/program`,
       color: "text-cyan-400",
+    },
+    {
+      title: t("feedbackManagement"),
+      desc: t("feedbackManagementDesc"),
+      icon: <MessageSquarePlus className="w-5 h-5" />,
+      href: `/${locale}/admin/geri-bildirimler`,
+      color: "text-teal-400",
     },
   ];
 

@@ -26,6 +26,7 @@
     "announcements": "Announcements",
     "schedule": "Judge Schedule",
     "profile": "Profile",
+    "feedback": "Feedback",
     "settings": "Settings",
     "admin": "Admin",
     "logout": "Logout"
@@ -242,7 +243,9 @@
     "announcementManagement": "Announcement Management",
     "announcementManagementDesc": "Create announcements with images and files",
     "weeklySchedule": "Weekly Schedule",
-    "weeklyScheduleDesc": "View and manage judge schedules"
+    "weeklyScheduleDesc": "View and manage judge schedules",
+    "feedbackManagement": "Feedbacks",
+    "feedbackManagementDesc": "View and manage user feedbacks"
   },
   "workshops": {
     "create": "Create Workshop",
