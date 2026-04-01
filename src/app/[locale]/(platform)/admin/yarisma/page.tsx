@@ -61,7 +61,7 @@ export default function AdminCompetitionsPage() {
       const res = await fetch("/api/competitions");
       if (res.ok) {
         const data = await res.json();
-        setCompetitions(data.competitions || []);
+        setCompetitions(data);
       }
     } catch {
       // fail
