@@ -20,6 +20,7 @@ import {
   Trash2,
   Mail,
   AlertTriangle,
+  PauseCircle,
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -51,6 +52,8 @@ export default function SettingsPage() {
   const [deletionRequested, setDeletionRequested] = useState(false);
   const [deletionReason, setDeletionReason] = useState("");
   const [showDeletion, setShowDeletion] = useState(false);
+  const [isActive, setIsActive] = useState(true);
+  const [activeLoading, setActiveLoading] = useState(false);
   const isTr = locale === "tr";
 
   useEffect(() => {
@@ -89,6 +92,7 @@ export default function SettingsPage() {
           bio: data.bio || "",
           language: data.language || "tr",
         });
+        setIsActive(data.isActive !== false);
       }
     } catch {
       // ignore
@@ -308,6 +312,53 @@ export default function SettingsPage() {
             }`}
           >
             🇬🇧 {t("english")}
+          </button>
+        </div>
+      </div>
+
+      {/* Vacation / Passive Mode */}
+      <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border p-4 space-y-3">
+        <h2 className="text-sm font-semibold text-ml-white flex items-center gap-2">
+          <PauseCircle className="w-4 h-4 text-ml-red" />
+          {isTr ? "Tatil / Pasif Modu" : "Vacation / Passive Mode"}
+        </h2>
+
+        <div className="flex items-center justify-between p-3 bg-ml-dark rounded-lg border border-ml-dark-border">
+          <div className="flex items-center gap-2">
+            <PauseCircle className={`w-4 h-4 ${isActive ? "text-ml-gray-400" : "text-ml-red"}`} />
+            <div>
+              <p className="text-xs font-medium text-ml-white">
+                {isActive
+                  ? (isTr ? "Aktif — Düellolara açık" : "Active — Open to battles")
+                  : (isTr ? "Pasif — Düellolara kapalı" : "Passive — Not available for battles")}
+              </p>
+              <p className="text-[10px] text-ml-gray-500">
+                {isTr
+                  ? "Pasif moddayken kimse size düello atamaz ve siz de atamazsınız. Profilinizde pasif görünür."
+                  : "In passive mode, no one can challenge you and you can't challenge others. Your profile shows passive."}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={async () => {
+              setActiveLoading(true);
+              try {
+                const res = await fetch("/api/users/me", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ isActive: !isActive }),
+                });
+                if (res.ok) setIsActive(!isActive);
+              } catch { } finally { setActiveLoading(false); }
+            }}
+            disabled={activeLoading}
+            className={`relative w-11 h-6 rounded-full transition-colors ${
+              isActive ? "bg-ml-success" : "bg-ml-red"
+            }`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
+              isActive ? "translate-x-5" : ""
+            }`} />
           </button>
         </div>
       </div>

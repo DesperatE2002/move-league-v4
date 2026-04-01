@@ -121,6 +121,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check challenger is active
+    const challengerUser = await db
+      .select({ isActive: users.isActive })
+      .from(users)
+      .where(eq(users.id, challengerId))
+      .limit(1);
+
+    if (challengerUser.length > 0 && !challengerUser[0].isActive) {
+      return NextResponse.json(
+        { error: "Pasif moddayken düello atamazsınız. Ayarlardan aktif moda geçin." },
+        { status: 400 }
+      );
+    }
+
     // Check opponent exists and is dancer
     const opponent = await db
       .select({ id: users.id, name: users.name, role: users.role, isActive: users.isActive })

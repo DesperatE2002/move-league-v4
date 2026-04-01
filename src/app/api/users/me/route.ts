@@ -27,6 +27,7 @@ export async function GET() {
         danceStyle: users.danceStyle,
         bio: users.bio,
         language: users.language,
+        isActive: users.isActive,
         createdAt: users.createdAt,
       })
       .from(users)
@@ -55,6 +56,16 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
+
+    // Handle isActive toggle separately
+    if (body.isActive !== undefined && Object.keys(body).length === 1) {
+      await db
+        .update(users)
+        .set({ isActive: Boolean(body.isActive), updatedAt: new Date() })
+        .where(eq(users.id, session.user.id));
+      return NextResponse.json({ success: true, isActive: Boolean(body.isActive) });
+    }
+
     const parsed = profileUpdateSchema.safeParse(body);
 
     if (!parsed.success) {

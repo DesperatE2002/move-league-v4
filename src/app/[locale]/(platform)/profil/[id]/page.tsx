@@ -18,6 +18,7 @@ import {
   Medal,
   Star,
   ArrowLeft,
+  PauseCircle,
 } from "lucide-react";
 
 export default async function PublicProfilePage({
@@ -139,6 +140,12 @@ export default async function PublicProfilePage({
           </div>
 
           <div className="flex flex-wrap gap-2 mt-3">
+            {!user.isActive && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-ml-red/10 text-ml-red text-xs font-medium border border-ml-red/20">
+                <PauseCircle className="w-3 h-3" />
+                {locale === "tr" ? "Pasif" : "Passive"}
+              </span>
+            )}
             {user.danceStyle && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-ml-red/10 text-ml-red text-xs font-medium border border-ml-red/20">
                 <Star className="w-3 h-3" />
