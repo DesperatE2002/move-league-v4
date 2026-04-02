@@ -67,10 +67,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        if (!user.isActive) {
-          throw new Error("INACTIVE_ACCOUNT");
-        }
-
         return {
           id: user.id,
           email: user.email,
@@ -98,7 +94,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             .limit(1);
 
           if (existing[0]) {
-            if (!existing[0].isActive) return false;
             return true;
           }
 

@@ -46,11 +46,7 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        if (result.error.includes("INACTIVE_ACCOUNT")) {
-          setError(t("inactiveAccount"));
-        } else {
-          setError(t("loginError"));
-        }
+        setError(t("loginError"));
       } else {
         router.push(`/${locale}/anasayfa`);
         router.refresh();
