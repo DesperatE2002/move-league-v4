@@ -67,6 +67,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        // Check if user is banned
+        const banned = await db
+          .select()
+          .from(bannedEmails)
+          .where(eq(bannedEmails.email, email))
+          .limit(1);
+
+        if (banned[0]) {
+          throw new Error("Bu hesap yasaklanmıştır");
+        }
+
         return {
           id: user.id,
           email: user.email,

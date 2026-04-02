@@ -63,7 +63,7 @@ export async function PATCH(req: NextRequest) {
 
     // Check user exists
     const [targetUser] = await db
-      .select({ id: users.id, isActive: users.isActive })
+      .select({ id: users.id, email: users.email, isActive: users.isActive })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
@@ -78,6 +78,13 @@ export async function PATCH(req: NextRequest) {
         .update(users)
         .set({ isActive: false, updatedAt: new Date() })
         .where(eq(users.id, userId));
+
+      // Add email to banned list to prevent re-registration via Google
+      await db.insert(bannedEmails).values({
+        email: targetUser.email,
+        reason: "Admin tarafından yasaklandı",
+      }).onConflictDoNothing();
+
       return NextResponse.json({ message: "Kullanıcı yasaklandı" });
     }
 
@@ -86,6 +93,10 @@ export async function PATCH(req: NextRequest) {
         .update(users)
         .set({ isActive: true, updatedAt: new Date() })
         .where(eq(users.id, userId));
+
+      // Remove email from banned list
+      await db.delete(bannedEmails).where(eq(bannedEmails.email, targetUser.email));
+
       return NextResponse.json({ message: "Kullanıcı yasağı kaldırıldı" });
     }
 
@@ -130,7 +141,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     const [targetUser] = await db
-      .select({ id: users.id, username: users.username, email: users.email })
+      .select({ id: users.id, username: users.username })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
@@ -138,12 +149,6 @@ export async function DELETE(req: NextRequest) {
     if (!targetUser) {
       return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 });
     }
-
-    // Save email to banned list before deleting
-    await db.insert(bannedEmails).values({
-      email: targetUser.email,
-      reason: "Admin tarafından silindi",
-    }).onConflictDoNothing();
 
     // Delete all related records — must respect FK dependency order
 
