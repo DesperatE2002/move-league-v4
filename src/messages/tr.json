@@ -45,6 +45,7 @@
     "noAccount": "Hesabınız yok mu?",
     "hasAccount": "Zaten hesabınız var mı?",
     "loginError": "E-posta veya şifre hatalı",
+    "oauthAccountLinked": "Bu e-posta adresi zaten farklı bir yöntemle kayıtlı",
     "registerSuccess": "Kayıt başarılı! Giriş yapabilirsiniz.",
     "registerError": "Kayıt sırasında bir hata oluştu",
     "selectRole": "Rol Seçin",

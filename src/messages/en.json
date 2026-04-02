@@ -45,6 +45,7 @@
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "loginError": "Invalid email or password",
+    "oauthAccountLinked": "This email is already registered with a different method",
     "registerSuccess": "Registration successful! You can now login.",
     "registerError": "An error occurred during registration",
     "selectRole": "Select Role",

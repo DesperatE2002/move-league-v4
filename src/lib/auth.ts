@@ -33,12 +33,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-        },
-      },
     }),
     Credentials({
       name: "credentials",
@@ -92,41 +86,46 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
-        const email = user.email;
-        if (!email) return false;
+        try {
+          const email = user.email;
+          if (!email) return false;
 
-        const existing = await db
-          .select()
-          .from(users)
-          .where(eq(users.email, email))
-          .limit(1);
+          const existing = await db
+            .select()
+            .from(users)
+            .where(eq(users.email, email))
+            .limit(1);
 
-        if (existing[0]) {
-          if (!existing[0].isActive) return false;
+          if (existing[0]) {
+            if (!existing[0].isActive) return false;
+            return true;
+          }
+
+          // Auto-create user on first Google sign-in
+          const nameParts = (user.name || "").split(" ");
+          const firstName = nameParts[0] || "User";
+          const lastName = nameParts.slice(1).join(" ") || "-";
+          const username = generateUsername(email);
+
+          await db.insert(users).values({
+            email,
+            name: firstName,
+            surname: lastName,
+            username,
+            role: "dancer",
+            avatarUrl: user.image || null,
+            emailVerified: true,
+            kvkkConsent: true,
+            termsConsent: true,
+            consentAt: new Date(),
+            language: "tr",
+          });
+
           return true;
+        } catch (error) {
+          console.error("Google sign-in error:", error);
+          return false;
         }
-
-        // Auto-create user on first Google sign-in
-        const nameParts = (user.name || "").split(" ");
-        const firstName = nameParts[0] || "User";
-        const lastName = nameParts.slice(1).join(" ") || "-";
-        const username = generateUsername(email);
-
-        await db.insert(users).values({
-          email,
-          name: firstName,
-          surname: lastName,
-          username,
-          role: "dancer",
-          avatarUrl: user.image || null,
-          emailVerified: true,
-          kvkkConsent: true,
-          termsConsent: true,
-          consentAt: new Date(),
-          language: "tr",
-        });
-
-        return true;
       }
       return true;
     },
@@ -185,9 +184,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   pages: {
     signIn: "/tr/giris",
+    error: "/tr/giris",
   },
   session: {
     strategy: "jwt",
   },
   trustHost: true,
+  debug: process.env.NODE_ENV === "development",
 });
