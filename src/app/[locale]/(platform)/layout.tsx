@@ -20,6 +20,11 @@ export default async function PlatformLayout({
     redirect(`/${locale}/giris`);
   }
 
+  // Redirect Google users who haven't completed profile
+  if (!session.user.profileCompleted) {
+    redirect(`/${locale}/profil-tamamla`);
+  }
+
   return (
     <Providers>
       <TopBar userName={session.user.name || ""} role={session.user.role} />

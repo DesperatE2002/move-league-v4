@@ -18,6 +18,7 @@ declare module "next-auth" {
       role: string;
       avatarUrl: string | null;
       language: string;
+      profileCompleted: boolean;
     };
   }
 }
@@ -67,7 +68,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         if (!user.isActive) {
-          return null;
+          throw new Error("INACTIVE_ACCOUNT");
         }
 
         return {
@@ -138,6 +139,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = (user as any).role;
         token.avatarUrl = (user as any).avatarUrl;
         token.language = (user as any).language;
+        token.profileCompleted = true;
       }
 
       // On Google sign-in, look up user from DB
@@ -158,6 +160,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             token.role = dbUser[0].role;
             token.avatarUrl = dbUser[0].avatarUrl;
             token.language = dbUser[0].language;
+            // Profile is completed if user has danceStyle set
+            token.profileCompleted = !!dbUser[0].danceStyle;
           }
         }
       }
@@ -168,6 +172,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.username = session.user.username;
         token.avatarUrl = session.user.avatarUrl;
         token.language = session.user.language;
+        if (session.user.profileCompleted !== undefined) {
+          token.profileCompleted = session.user.profileCompleted;
+        }
       }
 
       return token;
@@ -179,6 +186,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.role = token.role as string;
       session.user.avatarUrl = token.avatarUrl as string | null;
       session.user.language = token.language as string;
+      session.user.profileCompleted = (token.profileCompleted as boolean) ?? true;
       return session;
     },
   },

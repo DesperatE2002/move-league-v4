@@ -38,6 +38,7 @@ export const profileUpdateSchema = z.object({
   name: z.string().min(2).max(100).optional(),
   surname: z.string().min(2).max(100).optional(),
   username: z.string().min(3).max(50).optional(),
+  role: z.enum(["dancer", "coach", "studio", "judge"]).optional(),
   city: z.string().max(100).optional(),
   country: z.string().max(100).optional(),
   gender: z.enum(["male", "female", "other"]).optional(),

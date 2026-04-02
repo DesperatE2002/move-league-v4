@@ -81,6 +81,7 @@ export async function PATCH(req: NextRequest) {
 
     if (data.name) updateData.name = data.name;
     if (data.surname) updateData.surname = data.surname;
+    if (data.role) updateData.role = data.role;
     if (data.city !== undefined) updateData.city = data.city;
     if (data.country !== undefined) updateData.country = data.country;
     if (data.gender !== undefined) updateData.gender = data.gender;

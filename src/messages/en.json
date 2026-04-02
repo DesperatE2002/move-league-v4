@@ -60,7 +60,11 @@
     "maxStyles": "You can select up to 5 styles",
     "googleSignIn": "Sign in with Google",
     "googleSignUp": "Sign up with Google",
-    "or": "or"
+    "or": "or",
+    "inactiveAccount": "Your account is in passive mode. Activate it from Settings.",
+    "completeProfile": "Complete Your Profile",
+    "completeProfileDesc": "Fill in your details before continuing",
+    "completeProfileBtn": "Complete & Start"
   },
   "profile": {
     "title": "Profile",

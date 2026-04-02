@@ -60,7 +60,11 @@
     "maxStyles": "En fazla 5 stil seçebilirsiniz",
     "googleSignIn": "Google ile Giriş Yap",
     "googleSignUp": "Google ile Kayıt Ol",
-    "or": "veya"
+    "or": "veya",
+    "inactiveAccount": "Hesabınız pasif modda. Ayarlardan aktif edin.",
+    "completeProfile": "Profilini Tamamla",
+    "completeProfileDesc": "Devam etmeden önce bilgilerini doldur",
+    "completeProfileBtn": "Tamamla ve Başla"
   },
   "profile": {
     "title": "Profil",
