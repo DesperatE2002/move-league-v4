@@ -82,3 +82,11 @@ export const studioAvailability = pgTable("studio_availability", {
 });
 
 export type StudioAvailability = typeof studioAvailability.$inferSelect;
+
+// Emails banned by admin (prevents re-registration via Google OAuth)
+export const bannedEmails = pgTable("banned_emails", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: varchar("email", { length: 255 }).unique().notNull(),
+  reason: varchar("reason", { length: 255 }),
+  bannedAt: timestamp("banned_at").defaultNow(),
+});

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { users } from "@/db/schema/users";
+import { users, bannedEmails } from "@/db/schema/users";
 import { auth } from "@/lib/auth";
 import { eq, and, ne, sql } from "drizzle-orm";
 import { notifications, pushSubscriptions } from "@/db/schema/notifications";
@@ -130,7 +130,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     const [targetUser] = await db
-      .select({ id: users.id, username: users.username })
+      .select({ id: users.id, username: users.username, email: users.email })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
@@ -138,6 +138,12 @@ export async function DELETE(req: NextRequest) {
     if (!targetUser) {
       return NextResponse.json({ error: "Kullanıcı bulunamadı" }, { status: 404 });
     }
+
+    // Save email to banned list before deleting
+    await db.insert(bannedEmails).values({
+      email: targetUser.email,
+      reason: "Admin tarafından silindi",
+    }).onConflictDoNothing();
 
     // Delete all related records — must respect FK dependency order
 

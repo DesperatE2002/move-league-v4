@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { db } from "@/db";
-import { users } from "@/db/schema/users";
+import { users, bannedEmails } from "@/db/schema/users";
 import { eq } from "drizzle-orm";
 import bcryptjs from "bcryptjs";
 import type { User } from "@/db/schema/users";
@@ -86,6 +86,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const email = user.email;
           if (!email) return false;
+
+          // Check if email is banned
+          const banned = await db
+            .select()
+            .from(bannedEmails)
+            .where(eq(bannedEmails.email, email))
+            .limit(1);
+
+          if (banned[0]) return false;
 
           const existing = await db
             .select()
