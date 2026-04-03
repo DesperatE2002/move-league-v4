@@ -45,6 +45,9 @@ export const profileUpdateSchema = z.object({
   danceStyle: z.string().max(100).optional(),
   bio: z.string().max(500).optional(),
   language: z.enum(["tr", "en"]).optional(),
+  kvkkConsent: z.boolean().optional(),
+  termsConsent: z.boolean().optional(),
+  marketingConsent: z.boolean().optional(),
 });
 
 export const createBattleSchema = z.object({

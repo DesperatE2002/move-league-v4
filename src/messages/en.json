@@ -64,7 +64,8 @@
     "inactiveAccount": "Your account is in passive mode. Activate it from Settings.",
     "completeProfile": "Complete Your Profile",
     "completeProfileDesc": "Fill in your details before continuing",
-    "completeProfileBtn": "Complete & Start"
+    "completeProfileBtn": "Complete & Start",
+    "rememberMe": "Remember me"
   },
   "profile": {
     "title": "Profile",

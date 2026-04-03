@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
   const t = useTranslations("auth");
@@ -17,9 +18,18 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("ml_remember_email");
+    if (saved) {
+      setEmail(saved);
+      setRememberMe(true);
+    }
+  }, []);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -48,6 +58,11 @@ export default function LoginPage() {
       if (result?.error) {
         setError(t("loginError"));
       } else {
+        if (rememberMe) {
+          localStorage.setItem("ml_remember_email", email);
+        } else {
+          localStorage.removeItem("ml_remember_email");
+        }
         router.push(`/${locale}/anasayfa`);
         router.refresh();
       }
@@ -143,6 +158,29 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
+            </div>
+
+            {/* Remember Me */}
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setRememberMe(!rememberMe)}
+                className="flex items-center gap-2 text-sm text-ml-gray-400 hover:text-ml-gray-300 transition-colors"
+              >
+                <div className={cn(
+                  "w-4 h-4 rounded border flex items-center justify-center transition-all",
+                  rememberMe
+                    ? "bg-ml-red border-ml-red"
+                    : "border-ml-dark-border bg-ml-dark-card"
+                )}>
+                  {rememberMe && (
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                {t("rememberMe")}
+              </button>
             </div>
 
             {/* Submit */}

@@ -131,9 +131,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: "dancer",
             avatarUrl: user.image || null,
             emailVerified: true,
-            kvkkConsent: true,
-            termsConsent: true,
-            consentAt: new Date(),
+            kvkkConsent: false,
+            termsConsent: false,
             language: "tr",
           });
 
@@ -175,8 +174,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             token.role = dbUser[0].role;
             token.avatarUrl = dbUser[0].avatarUrl;
             token.language = dbUser[0].language;
-            // Profile is completed if user has danceStyle set
-            token.profileCompleted = !!dbUser[0].danceStyle;
+            // Profile is completed if user has danceStyle and kvkkConsent
+            token.profileCompleted = !!dbUser[0].danceStyle && !!dbUser[0].kvkkConsent;
           }
         }
       }

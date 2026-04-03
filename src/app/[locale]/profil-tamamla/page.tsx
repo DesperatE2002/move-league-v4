@@ -11,6 +11,8 @@ import {
   ChevronDown,
   Music,
   MapPin,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { DANCE_STYLES } from "@/lib/dance-styles";
 import { cn } from "@/lib/utils";
@@ -35,6 +37,9 @@ export default function CompleteProfilePage() {
     country: "Türkiye",
   });
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+  const [kvkkConsent, setKvkkConsent] = useState(false);
+  const [termsConsent, setTermsConsent] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -69,6 +74,12 @@ export default function CompleteProfilePage() {
       return;
     }
 
+    if (!kvkkConsent || !termsConsent) {
+      setError(locale === "tr" ? "KVKK ve Kullanım Koşullarını kabul etmeniz gerekiyor" : "You must accept KVKK and Terms of Service");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/users/me", {
         method: "PATCH",
@@ -81,6 +92,9 @@ export default function CompleteProfilePage() {
           city: form.city,
           country: form.country,
           danceStyle: selectedStyles.join(", "),
+          kvkkConsent,
+          termsConsent,
+          marketingConsent,
         }),
       });
 
@@ -258,6 +272,71 @@ export default function CompleteProfilePage() {
               <p className="text-xs text-ml-gray-500 mt-1">
                 {selectedStyles.length}/5 {t("maxStyles")}
               </p>
+            </div>
+
+            {/* KVKK & Terms Consent */}
+            <div className="space-y-3 pt-3 border-t border-ml-dark-border">
+              <p className="text-xs text-ml-gray-400 font-medium">
+                {locale === "tr" ? "Yasal Onaylar" : "Legal Consents"}
+              </p>
+
+              {/* KVKK */}
+              <button
+                type="button"
+                onClick={() => setKvkkConsent(!kvkkConsent)}
+                className="flex items-start gap-2.5 w-full text-left"
+              >
+                {kvkkConsent ? (
+                  <CheckSquare className="w-5 h-5 text-ml-red shrink-0 mt-0.5" />
+                ) : (
+                  <Square className="w-5 h-5 text-ml-gray-500 shrink-0 mt-0.5" />
+                )}
+                <span className="text-xs text-ml-gray-300 leading-relaxed">
+                  {locale === "tr" ? (
+                    <><a href={`/${locale}/kvkk`} target="_blank" className="text-ml-red underline hover:text-ml-red-light">KVKK Aydınlatma Metni</a>&apos;ni okudum ve kişisel verilerimin belirtilen amaçlarla işlenmesini kabul ediyorum.</>
+                  ) : (
+                    <>I have read the <a href={`/${locale}/kvkk`} target="_blank" className="text-ml-red underline hover:text-ml-red-light">KVKK Disclosure</a> and consent to the processing of my personal data.</>
+                  )}
+                </span>
+              </button>
+
+              {/* Terms */}
+              <button
+                type="button"
+                onClick={() => setTermsConsent(!termsConsent)}
+                className="flex items-start gap-2.5 w-full text-left"
+              >
+                {termsConsent ? (
+                  <CheckSquare className="w-5 h-5 text-ml-red shrink-0 mt-0.5" />
+                ) : (
+                  <Square className="w-5 h-5 text-ml-gray-500 shrink-0 mt-0.5" />
+                )}
+                <span className="text-xs text-ml-gray-300 leading-relaxed">
+                  {locale === "tr" ? (
+                    <><a href={`/${locale}/kullanim-kosullari`} target="_blank" className="text-ml-red underline hover:text-ml-red-light">Kullanım Koşulları</a>&apos;nı ve <a href={`/${locale}/gizlilik`} target="_blank" className="text-ml-red underline hover:text-ml-red-light">Gizlilik Politikası</a>&apos;nı okudum ve kabul ediyorum.</>
+                  ) : (
+                    <>I have read and accept the <a href={`/${locale}/kullanim-kosullari`} target="_blank" className="text-ml-red underline hover:text-ml-red-light">Terms of Service</a> and <a href={`/${locale}/gizlilik`} target="_blank" className="text-ml-red underline hover:text-ml-red-light">Privacy Policy</a>.</>
+                  )}
+                </span>
+              </button>
+
+              {/* Marketing (optional) */}
+              <button
+                type="button"
+                onClick={() => setMarketingConsent(!marketingConsent)}
+                className="flex items-start gap-2.5 w-full text-left"
+              >
+                {marketingConsent ? (
+                  <CheckSquare className="w-5 h-5 text-ml-red shrink-0 mt-0.5" />
+                ) : (
+                  <Square className="w-5 h-5 text-ml-gray-500 shrink-0 mt-0.5" />
+                )}
+                <span className="text-xs text-ml-gray-300 leading-relaxed">
+                  {locale === "tr"
+                    ? "Move League'den etkinlikler, yeni özellikler ve kampanyalar hakkında e-posta almak istiyorum. (İsteğe bağlı)"
+                    : "I want to receive emails from Move League about events, new features, and promotions. (Optional)"}
+                </span>
+              </button>
             </div>
 
             {/* Submit */}

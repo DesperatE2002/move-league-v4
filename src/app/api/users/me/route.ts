@@ -88,6 +88,10 @@ export async function PATCH(req: NextRequest) {
     if (data.danceStyle !== undefined) updateData.danceStyle = data.danceStyle;
     if (data.bio !== undefined) updateData.bio = data.bio;
     if (data.language) updateData.language = data.language;
+    if (data.kvkkConsent !== undefined) updateData.kvkkConsent = data.kvkkConsent;
+    if (data.termsConsent !== undefined) updateData.termsConsent = data.termsConsent;
+    if (data.marketingConsent !== undefined) updateData.marketingConsent = data.marketingConsent;
+    if (data.kvkkConsent || data.termsConsent) updateData.consentAt = new Date();
 
     if (data.username) {
       const existingUsername = await db

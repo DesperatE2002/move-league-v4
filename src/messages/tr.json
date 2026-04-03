@@ -64,7 +64,8 @@
     "inactiveAccount": "Hesabınız pasif modda. Ayarlardan aktif edin.",
     "completeProfile": "Profilini Tamamla",
     "completeProfileDesc": "Devam etmeden önce bilgilerini doldur",
-    "completeProfileBtn": "Tamamla ve Başla"
+    "completeProfileBtn": "Tamamla ve Başla",
+    "rememberMe": "Beni hatırla"
   },
   "profile": {
     "title": "Profil",

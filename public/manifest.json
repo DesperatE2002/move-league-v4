@@ -1,7 +1,7 @@
 {
   "name": "Move League",
   "short_name": "MoveLeague",
-  "description": "Küresel dans yarışma platformu",
+  "description": "Dansçıların ELO puanlama sistemiyle düello ettiği, atölyelere katıldığı, takımlar kurduğu ve küresel sıralamalarda yarıştığı online dans yarışma platformu.",
   "start_url": "/tr/anasayfa",
   "display": "standalone",
   "background_color": "#0A0A0A",
