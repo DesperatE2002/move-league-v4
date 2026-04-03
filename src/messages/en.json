@@ -29,7 +29,9 @@
     "feedback": "Feedback",
     "settings": "Settings",
     "admin": "Admin",
-    "logout": "Logout"
+    "logout": "Logout",
+    "more": "More",
+    "close": "Close"
   },
   "auth": {
     "login": "Login",

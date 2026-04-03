@@ -29,7 +29,9 @@
     "feedback": "Geri Bildirim",
     "settings": "Ayarlar",
     "admin": "Yönetim",
-    "logout": "Çıkış Yap"
+    "logout": "Çıkış Yap",
+    "more": "Daha",
+    "close": "Kapat"
   },
   "auth": {
     "login": "Giriş Yap",
