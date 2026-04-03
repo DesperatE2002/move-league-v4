@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Çevrimdışı — Move League</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0A0A0A;
+      color: #e5e5e5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container { text-align: center; padding: 24px; max-width: 400px; }
+    .icon { font-size: 64px; margin-bottom: 16px; }
+    h1 { font-size: 24px; color: #fff; margin-bottom: 8px; }
+    p { color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+    button {
+      background: #E31937;
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #c41530; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>İnternet Bağlantısı Yok</h1>
+    <p>Şu an çevrimdışı görünüyorsunuz. İnternet bağlantınızı kontrol edip tekrar deneyin.</p>
+    <button onclick="window.location.reload()">Tekrar Dene</button>
+  </div>
+</body>
+</html>

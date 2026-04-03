@@ -7,6 +7,7 @@ import {
   timestamp,
   pgEnum,
   jsonb,
+  index,
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
 
@@ -44,7 +45,10 @@ export const notifications = pgTable("notifications", {
   isRead: boolean("is_read").default(false),
   channel: notificationChannelEnum("channel").default("in_app"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => ([
+  index("notifications_user_idx").on(table.userId),
+  index("notifications_user_unread_idx").on(table.userId, table.isRead),
+]));
 
 export const pushSubscriptions = pgTable("push_subscriptions", {
   id: uuid("id").defaultRandom().primaryKey(),

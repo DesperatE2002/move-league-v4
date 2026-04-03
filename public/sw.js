@@ -1,9 +1,9 @@
-const CACHE_NAME = "move-league-v1";
+const CACHE_NAME = "move-league-v2";
 const STATIC_ASSETS = [
+  "/offline.html",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/logo.png",
-  "/logo.svg",
   "/manifest.json",
 ];
 
@@ -73,16 +73,17 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Pages: Stale While Revalidate
+  // Pages: Network First with offline fallback
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const fetchPromise = fetch(request).then((response) => {
+    fetch(request)
+      .then((response) => {
         const clone = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         return response;
-      });
-      return cached || fetchPromise;
-    })
+      })
+      .catch(() =>
+        caches.match(request).then((cached) => cached || caches.match("/offline.html"))
+      )
   );
 });
 

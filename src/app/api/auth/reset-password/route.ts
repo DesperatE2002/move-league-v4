@@ -4,10 +4,20 @@ import { users } from "@/db/schema/users";
 import { eq } from "drizzle-orm";
 import bcryptjs from "bcryptjs";
 import { createHash } from "crypto";
+import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/auth/reset-password — Reset password with token
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: max 5 reset attempts per IP per 15 minutes
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+    const { limited } = rateLimit(`reset:${ip}`, 5, 15 * 60 * 1000);
+    if (limited) {
+      return NextResponse.json(
+        { error: "Çok fazla deneme. Lütfen daha sonra tekrar deneyin." },
+        { status: 429 }
+      );
+    }
     const body = await req.json();
     const { token, password } = body;
 

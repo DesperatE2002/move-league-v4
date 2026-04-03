@@ -7,9 +7,19 @@ import bcryptjs from "bcryptjs";
 import { registerSchema } from "@/lib/validators";
 import { sendWelcomeEmail } from "@/lib/email";
 import { randomBytes, createHash } from "crypto";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: max 5 registrations per IP per 15 minutes
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+    const { limited } = rateLimit(`register:${clientIp}`, 5, 15 * 60 * 1000);
+    if (limited) {
+      return NextResponse.json(
+        { error: "Çok fazla kayıt denemesi. Lütfen daha sonra tekrar deneyin." },
+        { status: 429 }
+      );
+    }
     const body = await req.json();
     const parsed = registerSchema.safeParse(body);
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { workshops, workshopEnrollments } from "@/db/schema/workshops";
 import { auth } from "@/lib/auth";
-import { eq, and } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 import { createNotification } from "@/lib/notifications";
 
 // POST /api/workshops/[id]/enroll — Enroll in workshop
@@ -20,7 +20,7 @@ export async function POST(
 
     // Check workshop exists and is approved
     const [workshop] = await db
-      .select({ id: workshops.id, isPublished: workshops.isPublished, isApproved: workshops.isApproved })
+      .select({ id: workshops.id, isPublished: workshops.isPublished, isApproved: workshops.isApproved, maxParticipants: workshops.maxParticipants })
       .from(workshops)
       .where(eq(workshops.id, id))
       .limit(1);
@@ -31,6 +31,22 @@ export async function POST(
 
     if (!workshop.isPublished || !workshop.isApproved) {
       return NextResponse.json({ error: "Bu atölye henüz onaylanmamış" }, { status: 403 });
+    }
+
+    // Check enrollment capacity
+    if (workshop.maxParticipants) {
+      const [{ enrolledCount }] = await db
+        .select({ enrolledCount: count() })
+        .from(workshopEnrollments)
+        .where(
+          and(
+            eq(workshopEnrollments.workshopId, id),
+            eq(workshopEnrollments.status, "enrolled")
+          )
+        );
+      if (enrolledCount >= workshop.maxParticipants) {
+        return NextResponse.json({ error: "Atölye kapasitesi dolu" }, { status: 400 });
+      }
     }
 
     // Check if already enrolled

@@ -6,6 +6,7 @@ import {
   boolean,
   date,
   varchar,
+  index,
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
 
@@ -38,7 +39,11 @@ export const dancerRatings = pgTable("dancer_ratings", {
   peakRating: integer("peak_rating").default(1000),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ([
+  index("ratings_user_season_idx").on(table.userId, table.seasonId),
+  index("ratings_season_rating_idx").on(table.seasonId, table.rating),
+  index("ratings_style_idx").on(table.danceStyle),
+]));
 
 export type Season = typeof seasons.$inferSelect;
 export type NewSeason = typeof seasons.$inferInsert;

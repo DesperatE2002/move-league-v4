@@ -6,6 +6,7 @@ import {
   timestamp,
   pgEnum,
   text,
+  index,
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { studios } from "./users";
@@ -45,7 +46,13 @@ export const battles = pgTable("battles", {
   ratingChange: integer("rating_change"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ([
+  index("battles_challenger_idx").on(table.challengerId),
+  index("battles_opponent_idx").on(table.opponentId),
+  index("battles_status_idx").on(table.status),
+  index("battles_judge_idx").on(table.judgeId),
+  index("battles_season_idx").on(table.seasonId),
+]));
 
 export const battleStudioPreferences = pgTable("battle_studio_preferences", {
   id: uuid("id").defaultRandom().primaryKey(),

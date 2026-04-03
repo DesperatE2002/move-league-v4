@@ -4,10 +4,20 @@ import { users } from "@/db/schema/users";
 import { eq } from "drizzle-orm";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { randomBytes, createHash } from "crypto";
+import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/auth/forgot-password — Request password reset
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: max 3 reset requests per IP per hour
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+    const { limited } = rateLimit(`forgot:${ip}`, 3, 60 * 60 * 1000);
+    if (limited) {
+      return NextResponse.json(
+        { error: "Çok fazla talep. Lütfen daha sonra tekrar deneyin." },
+        { status: 429 }
+      );
+    }
     const body = await req.json();
     const { email } = body;
 

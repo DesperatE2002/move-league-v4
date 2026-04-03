@@ -8,6 +8,7 @@ import {
   timestamp,
   pgEnum,
   decimal,
+  index,
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
 
@@ -64,7 +65,10 @@ export const workshopEnrollments = pgTable("workshop_enrollments", {
   status: enrollmentStatusEnum("status").default("enrolled"),
   enrolledAt: timestamp("enrolled_at").defaultNow(),
   completedAt: timestamp("completed_at"),
-});
+}, (table) => ([
+  index("enrollments_workshop_idx").on(table.workshopId),
+  index("enrollments_user_idx").on(table.userId),
+]));
 
 export const workshopReviews = pgTable("workshop_reviews", {
   id: uuid("id").defaultRandom().primaryKey(),

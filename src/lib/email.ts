@@ -12,6 +12,16 @@ function getResend() {
 const FROM_EMAIL = process.env.EMAIL_FROM || "Move League <onboarding@resend.dev>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://move-league-v4.vercel.app";
 
+// Sanitize user input for safe HTML email embedding
+function esc(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 async function sendEmail(to: string, subject: string, html: string) {
   const client = getResend();
   if (!client) {
@@ -59,9 +69,9 @@ function btn(text: string, url: string) {
 // ─── Email Templates ───────────────────────────────────────
 
 export async function sendWelcomeEmail(to: string, name: string, verifyToken: string) {
-  const url = `${APP_URL}/tr/email-dogrula?token=${verifyToken}`;
+  const url = `${APP_URL}/tr/email-dogrula?token=${encodeURIComponent(verifyToken)}`;
   await sendEmail(to, "Move League'e Hoş Geldiniz! 🎉", layout(`
-    <h2 style="color:#fff;margin:0 0 12px;">Hoş Geldiniz, ${name}!</h2>
+    <h2 style="color:#fff;margin:0 0 12px;">Hoş Geldiniz, ${esc(name)}!</h2>
     <p>Move League ailesine katıldığınız için teşekkürler. Hesabınızı aktifleştirmek için e-posta adresinizi doğrulayın.</p>
     <p style="text-align:center;">${btn("E-postamı Doğrula", url)}</p>
     <p style="color:#888;font-size:12px;margin-top:16px;">Bu bağlantı 24 saat geçerlidir. Eğer bu hesabı siz oluşturmadıysanız bu e-postayı görmezden gelebilirsiniz.</p>
@@ -72,7 +82,7 @@ export async function sendPasswordResetEmail(to: string, name: string, resetToke
   const url = `${APP_URL}/tr/sifre-sifirla?token=${resetToken}`;
   await sendEmail(to, "Şifre Sıfırlama Talebi", layout(`
     <h2 style="color:#fff;margin:0 0 12px;">Şifre Sıfırlama</h2>
-    <p>Merhaba ${name}, hesabınız için bir şifre sıfırlama talebi aldık.</p>
+    <p>Merhaba ${esc(name)}, hesabınız için bir şifre sıfırlama talebi aldık.</p>
     <p style="text-align:center;">${btn("Şifremi Sıfırla", url)}</p>
     <p style="color:#888;font-size:12px;margin-top:16px;">Bu talebi siz yapmadıysanız bu e-postayı görmezden gelebilirsiniz. Bağlantı 1 saat geçerlidir.</p>
   `));
@@ -80,9 +90,9 @@ export async function sendPasswordResetEmail(to: string, name: string, resetToke
 
 export async function sendBattleChallengeEmail(to: string, name: string, challengerName: string) {
   const url = `${APP_URL}/tr/duellolar`;
-  await sendEmail(to, `${challengerName} sizi düelloya davet etti! ⚔️`, layout(`
+  await sendEmail(to, `${esc(challengerName)} sizi düelloya davet etti! ⚔️`, layout(`
     <h2 style="color:#fff;margin:0 0 12px;">Yeni Düello Daveti</h2>
-    <p>Merhaba ${name}, <strong>${challengerName}</strong> sizi bir dans düellosuna davet etti!</p>
+    <p>Merhaba ${esc(name)}, <strong>${esc(challengerName)}</strong> sizi bir dans düellosuna davet etti!</p>
     <p style="text-align:center;">${btn("Daveti Görüntüle", url)}</p>
   `));
 }
@@ -90,7 +100,7 @@ export async function sendBattleChallengeEmail(to: string, name: string, challen
 export async function sendBattleResultEmail(to: string, name: string, won: boolean, opponentName: string, ratingChange: number) {
   await sendEmail(to, won ? "Düelloyu Kazandınız! 🏆" : "Düello Sonucu", layout(`
     <h2 style="color:#fff;margin:0 0 12px;">${won ? "Tebrikler! 🏆" : "Düello Tamamlandı"}</h2>
-    <p>Merhaba ${name}, <strong>${opponentName}</strong> ile düellonuz tamamlandı.</p>
+    <p>Merhaba ${esc(name)}, <strong>${esc(opponentName)}</strong> ile düellonuz tamamlandı.</p>
     <p style="font-size:16px;font-weight:600;color:${won ? "#22c55e" : "#ef4444"};">
       ${won ? "Kazandınız!" : "Maalesef bu seferlik olmadı."} (${ratingChange > 0 ? "+" : ""}${ratingChange} rating)
     </p>
@@ -99,25 +109,25 @@ export async function sendBattleResultEmail(to: string, name: string, won: boole
 }
 
 export async function sendTeamInviteEmail(to: string, name: string, teamName: string, coachName: string) {
-  await sendEmail(to, `${teamName} takımına davet edildiniz!`, layout(`
+  await sendEmail(to, `${esc(teamName)} takımına davet edildiniz!`, layout(`
     <h2 style="color:#fff;margin:0 0 12px;">Takım Daveti</h2>
-    <p>Merhaba ${name}, <strong>${coachName}</strong> sizi <strong>${teamName}</strong> takımına davet etti.</p>
+    <p>Merhaba ${esc(name)}, <strong>${esc(coachName)}</strong> sizi <strong>${esc(teamName)}</strong> takımına davet etti.</p>
     <p style="text-align:center;">${btn("Daveti Görüntüle", `${APP_URL}/tr/takimlar`)}</p>
   `));
 }
 
 export async function sendWorkshopEnrollEmail(to: string, name: string, workshopTitle: string) {
-  await sendEmail(to, `"${workshopTitle}" atölyesine kaydınız tamamlandı`, layout(`
+  await sendEmail(to, `"${esc(workshopTitle)}" atölyesine kaydınız tamamlandı`, layout(`
     <h2 style="color:#fff;margin:0 0 12px;">Atölye Kaydı Tamamlandı</h2>
-    <p>Merhaba ${name}, <strong>${workshopTitle}</strong> atölyesine başarıyla kaydoldunuz.</p>
+    <p>Merhaba ${esc(name)}, <strong>${esc(workshopTitle)}</strong> atölyesine başarıyla kaydoldunuz.</p>
     <p style="text-align:center;">${btn("Atölyeye Git", `${APP_URL}/tr/atolyeler`)}</p>
   `));
 }
 
 export async function sendBadgeEarnedEmail(to: string, name: string, badgeName: string) {
-  await sendEmail(to, `Yeni rozet kazandınız: ${badgeName} 🏅`, layout(`
+  await sendEmail(to, `Yeni rozet kazandınız: ${esc(badgeName)} 🏅`, layout(`
     <h2 style="color:#fff;margin:0 0 12px;">Yeni Rozet! 🏅</h2>
-    <p>Tebrikler ${name}, <strong>${badgeName}</strong> rozetini kazandınız!</p>
+    <p>Tebrikler ${esc(name)}, <strong>${esc(badgeName)}</strong> rozetini kazandınız!</p>
     <p style="text-align:center;">${btn("Rozetlerimi Gör", `${APP_URL}/tr/profil`)}</p>
   `));
 }
@@ -171,8 +181,8 @@ export async function sendNotificationEmail(
     : `${APP_URL}${urlPath}`;
 
   await sendEmail(to, subject, layout(`
-    <h2 style="color:#fff;margin:0 0 12px;">${title}</h2>
-    <p>${message}</p>
+    <h2 style="color:#fff;margin:0 0 12px;">${esc(title)}</h2>
+    <p>${esc(message)}</p>
     <p style="text-align:center;">${btn("Detayları Gör", detailUrl)}</p>
     <p style="color:#888;font-size:11px;margin-top:16px;">Bu e-posta Move League bildirim sistemi tarafından gönderilmiştir.</p>
   `));
