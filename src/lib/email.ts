@@ -9,7 +9,7 @@ function getResend() {
   return resend;
 }
 
-const FROM_EMAIL = process.env.EMAIL_FROM || "Move League <onboarding@resend.devue <onboarding@resend.dev>";
+const FROM_EMAIL = process.env.EMAIL_FROM || "Move League <onboarding@resend.dev>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://move-league-v4.vercel.app";
 
 async function sendEmail(to: string, subject: string, html: string) {
@@ -119,5 +119,61 @@ export async function sendBadgeEarnedEmail(to: string, name: string, badgeName: 
     <h2 style="color:#fff;margin:0 0 12px;">Yeni Rozet! 🏅</h2>
     <p>Tebrikler ${name}, <strong>${badgeName}</strong> rozetini kazandınız!</p>
     <p style="text-align:center;">${btn("Rozetlerimi Gör", `${APP_URL}/tr/profil`)}</p>
+  `));
+}
+
+// ─── Generic Notification Email ────────────────────────────
+
+const NOTIFICATION_SUBJECTS: Record<string, string> = {
+  battle_request: "Yeni Düello Talebi! ⚔️",
+  battle_accepted: "Düello Kabul Edildi! ✅",
+  battle_declined: "Düello Reddedildi",
+  battle_scheduled: "Düello Güncellendi 📅",
+  battle_reminder: "Düello Hatırlatması ⏰",
+  battle_result: "Düello Sonuçlandı! 🏆",
+  judge_assigned: "Hakem Ataması 🏛️",
+  workshop_purchased: "Atölye Kaydı ✅",
+  team_invite: "Takım Daveti 🤝",
+  competition_announce: "Yeni Yarışma! 🎯",
+  season_end: "Sezon Sonu 📊",
+  badge_earned: "Yeni Rozet! 🏅",
+  admin_announcement: "Duyuru 📢",
+};
+
+const NOTIFICATION_URLS: Record<string, string> = {
+  battle_request: "/tr/duellolar",
+  battle_accepted: "/tr/duellolar",
+  battle_declined: "/tr/duellolar",
+  battle_scheduled: "/tr/duellolar",
+  battle_reminder: "/tr/duellolar",
+  battle_result: "/tr/duellolar",
+  judge_assigned: "/tr/duellolar",
+  workshop_purchased: "/tr/atolyeler",
+  team_invite: "/tr/takimlar",
+  competition_announce: "/tr/yarisma",
+  season_end: "/tr/siralama",
+  badge_earned: "/tr/profil",
+  admin_announcement: "/tr/duyurular",
+};
+
+export async function sendNotificationEmail(
+  to: string,
+  name: string,
+  type: string,
+  title: string,
+  message: string,
+  data?: Record<string, unknown>
+) {
+  const subject = NOTIFICATION_SUBJECTS[type] || title;
+  const urlPath = NOTIFICATION_URLS[type] || "/tr/anasayfa";
+  const detailUrl = data?.battleId
+    ? `${APP_URL}/tr/duellolar/${data.battleId}`
+    : `${APP_URL}${urlPath}`;
+
+  await sendEmail(to, subject, layout(`
+    <h2 style="color:#fff;margin:0 0 12px;">${title}</h2>
+    <p>${message}</p>
+    <p style="text-align:center;">${btn("Detayları Gör", detailUrl)}</p>
+    <p style="color:#888;font-size:11px;margin-top:16px;">Bu e-posta Move League bildirim sistemi tarafından gönderilmiştir.</p>
   `));
 }

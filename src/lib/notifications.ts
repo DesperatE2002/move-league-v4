@@ -1,5 +1,8 @@
 import { db } from "@/db";
 import { notifications } from "@/db/schema/notifications";
+import { users } from "@/db/schema/users";
+import { eq } from "drizzle-orm";
+import { sendNotificationEmail } from "@/lib/email";
 
 type NotificationType =
   | "battle_request"
@@ -31,4 +34,19 @@ export async function createNotification(
     data: data ?? null,
     channel: "in_app",
   });
+
+  // Also send email notification (fire and forget)
+  try {
+    const [user] = await db
+      .select({ email: users.email, name: users.name })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (user?.email) {
+      sendNotificationEmail(user.email, user.name, type, title, message, data);
+    }
+  } catch {
+    // Email failure should not block notification creation
+  }
 }

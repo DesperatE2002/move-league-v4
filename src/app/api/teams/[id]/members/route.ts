@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { teamMembers, teams } from "@/db/schema/teams";
 import { users } from "@/db/schema/users";
-import { notifications } from "@/db/schema/notifications";
 import { auth } from "@/lib/auth";
 import { eq, and } from "drizzle-orm";
-import { sendTeamInviteEmail } from "@/lib/email";
+import { createNotification } from "@/lib/notifications";
 
 // POST /api/teams/[id]/members — Invite member (coach only)
 export async function POST(
@@ -47,20 +46,14 @@ export async function POST(
       status: "invited",
     });
 
-    // Send notification
-    await db.insert(notifications).values({
+    // Send notification + email
+    await createNotification(
       userId,
-      type: "team_invite",
-      title: "Takım Daveti",
-      message: `${teamArr[0].name} takımına davet edildiniz.`,
-      data: { teamId: id },
-    });
-
-    // Send email to invited user
-    const invitedUser = await db.select({ email: users.email, name: users.name }).from(users).where(eq(users.id, userId)).limit(1);
-    if (invitedUser[0]?.email) {
-      sendTeamInviteEmail(invitedUser[0].email, invitedUser[0].name, teamArr[0].name, session.user.name || "");
-    }
+      "team_invite",
+      "Takım Daveti",
+      `${teamArr[0].name} takımına davet edildiniz.`,
+      { teamId: id }
+    );
 
     return NextResponse.json({ message: "Davet gönderildi" }, { status: 201 });
   } catch (error) {

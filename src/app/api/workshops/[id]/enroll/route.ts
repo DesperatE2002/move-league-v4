@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { workshops, workshopEnrollments } from "@/db/schema/workshops";
-import { users } from "@/db/schema/users";
 import { auth } from "@/lib/auth";
 import { eq, and } from "drizzle-orm";
-import { sendWorkshopEnrollEmail } from "@/lib/email";
+import { createNotification } from "@/lib/notifications";
 
 // POST /api/workshops/[id]/enroll — Enroll in workshop
 export async function POST(
@@ -57,14 +56,15 @@ export async function POST(
       status: "enrolled",
     });
 
-    // Send enrollment confirmation email
-    const [ws, usr] = await Promise.all([
-      db.select({ title: workshops.title }).from(workshops).where(eq(workshops.id, id)).limit(1),
-      db.select({ email: users.email, name: users.name }).from(users).where(eq(users.id, session.user.id)).limit(1),
-    ]);
-    if (usr[0]?.email && ws[0]?.title) {
-      sendWorkshopEnrollEmail(usr[0].email, usr[0].name, ws[0].title);
-    }
+    // Send notification + email
+    const [ws] = await db.select({ title: workshops.title }).from(workshops).where(eq(workshops.id, id)).limit(1);
+    await createNotification(
+      session.user.id,
+      "workshop_purchased",
+      "Atölye Kaydı Tamamlandı",
+      `${ws?.title || "Atölye"} atölyesine başarıyla kaydoldunuz.`,
+      { workshopId: id }
+    );
 
     return NextResponse.json({ message: "Kayıt başarılı" }, { status: 201 });
   } catch (error) {

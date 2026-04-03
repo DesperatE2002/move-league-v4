@@ -4,6 +4,7 @@ import { users } from "@/db/schema/users";
 import { notifications } from "@/db/schema/notifications";
 import { auth } from "@/lib/auth";
 import { ne, eq } from "drizzle-orm";
+import { sendNotificationEmail } from "@/lib/email";
 
 // POST /api/admin/announcements — Send announcement (bulk to all or to specific user)
 export async function POST(req: NextRequest) {
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
     // Individual notification to a specific user
     if (userId) {
       const [targetUser] = await db
-        .select({ id: users.id })
+        .select({ id: users.id, email: users.email, name: users.name })
         .from(users)
         .where(eq(users.id, userId))
         .limit(1);
@@ -39,6 +40,9 @@ export async function POST(req: NextRequest) {
         message,
         channel: "in_app" as const,
       });
+
+      // Send email notification
+      sendNotificationEmail(targetUser.email, targetUser.name, "admin_announcement", title, message);
 
       return NextResponse.json({ message: "Bildirim gönderildi", count: 1 }, { status: 201 });
     }

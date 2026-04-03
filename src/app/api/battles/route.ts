@@ -7,7 +7,6 @@ import { dancerRatings } from "@/db/schema/seasons";
 import { auth } from "@/lib/auth";
 import { createBattleSchema } from "@/lib/validators";
 import { createNotification } from "@/lib/notifications";
-import { sendBattleChallengeEmail } from "@/lib/email";
 import { eq, or, and, desc, sql } from "drizzle-orm";
 
 // GET /api/battles — Düellolarımı listele
@@ -216,7 +215,7 @@ export async function POST(req: NextRequest) {
         createdAt: battles.createdAt,
       });
 
-    // Create notification for opponent
+    // Create notification for opponent (also sends email)
     await createNotification(
       opponentId,
       "battle_request",
@@ -224,14 +223,6 @@ export async function POST(req: NextRequest) {
       `${session.user.name} seni düelloya davet etti!`,
       { battleId: newBattle[0].id, challengerName: session.user.name }
     );
-
-    // Send email to opponent
-    if (opponent[0]) {
-      const oppUser = await db.select({ email: users.email }).from(users).where(eq(users.id, opponentId)).limit(1);
-      if (oppUser[0]?.email) {
-        sendBattleChallengeEmail(oppUser[0].email, opponent[0].name, session.user.name || "");
-      }
-    }
 
     return NextResponse.json(
       { message: "Düello talebi gönderildi", battle: newBattle[0] },
