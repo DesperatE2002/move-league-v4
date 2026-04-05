@@ -39,8 +39,12 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.R
   pending: { label: "Bekliyor", color: "text-ml-warning", icon: <Clock className="w-3.5 h-3.5" /> },
   accepted: { label: "Kabul Edildi", color: "text-ml-info", icon: <CheckCircle className="w-3.5 h-3.5" /> },
   declined: { label: "Reddedildi", color: "text-ml-gray-500", icon: <XCircle className="w-3.5 h-3.5" /> },
+  studio_pending: { label: "Stüdyo Bekleniyor", color: "text-ml-warning", icon: <Clock className="w-3.5 h-3.5" /> },
+  studio_approved: { label: "Stüdyo Onayladı", color: "text-ml-success", icon: <CheckCircle className="w-3.5 h-3.5" /> },
+  studio_rejected: { label: "Stüdyo Reddetti", color: "text-ml-gray-500", icon: <XCircle className="w-3.5 h-3.5" /> },
   scheduled: { label: "Planlandı", color: "text-ml-info", icon: <Clock className="w-3.5 h-3.5" /> },
   judge_assigned: { label: "Hakem Atandı", color: "text-purple-400", icon: <Swords className="w-3.5 h-3.5" /> },
+  in_progress: { label: "Devam Ediyor", color: "text-ml-info", icon: <Swords className="w-3.5 h-3.5" /> },
   completed: { label: "Tamamlandı", color: "text-ml-success", icon: <Trophy className="w-3.5 h-3.5" /> },
   cancelled: { label: "İptal", color: "text-ml-gray-500", icon: <XCircle className="w-3.5 h-3.5" /> },
 };

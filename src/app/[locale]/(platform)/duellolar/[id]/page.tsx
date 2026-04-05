@@ -510,8 +510,29 @@ export default function BattleDetailPage() {
             <p className="text-xs text-ml-gray-400">{t("selectStudiosDesc")}</p>
 
             {allStudios.length === 0 ? (
-              <div className="flex justify-center py-4">
-                <Loader2 className="w-5 h-5 text-ml-info animate-spin" />
+              <div className="text-center py-4 space-y-3">
+                <Building2 className="w-8 h-8 text-ml-gray-500 mx-auto" />
+                <p className="text-sm text-ml-gray-400">{t("noStudiosAvailable")}</p>
+                <button
+                  onClick={async () => {
+                    setStudioSubmitting(true);
+                    try {
+                      const res = await fetch(`/api/battles/${id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: "skip-studio" }),
+                      });
+                      if (res.ok) fetchBattle();
+                    } catch { /* */ } finally {
+                      setStudioSubmitting(false);
+                    }
+                  }}
+                  disabled={studioSubmitting}
+                  className="w-full py-3 bg-ml-red hover:bg-ml-red-light text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {studioSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Swords className="w-4 h-4" />}
+                  {t("skipStudio")}
+                </button>
               </div>
             ) : (
               <div className="space-y-2">

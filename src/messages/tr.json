@@ -180,7 +180,9 @@
     "studioLocationPlaceholder": "Salon adı, kat, adres detayı...",
     "studioWaitingApproval": "Stüdyo onayı bekleniyor...",
     "studioWaitingApprovalDesc": "Eşleşen stüdyonun onayı bekleniyor. Stüdyo onayladığında bildirim alacaksınız.",
-    "studioApprovedMsg": "Stüdyo onaylandı! Düello planlandı."
+    "studioApprovedMsg": "Stüdyo onaylandı! Düello planlandı.",
+    "noStudiosAvailable": "Henüz kayıtlı stüdyo bulunmuyor. Stüdyosuz devam edebilirsiniz.",
+    "skipStudio": "Stüdyosuz Devam Et"
   },
   "rankings": {
     "noRankings": "Henüz sıralama yok",

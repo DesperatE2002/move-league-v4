@@ -128,6 +128,40 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
           return NextResponse.json({ error: "Bu düello zaten işlenmiş" }, { status: 400 });
         }
 
+        // Check if any studios exist
+        const availableStudios = await db
+          .select({ id: studios.id })
+          .from(studios)
+          .where(eq(studios.isAvailable, true))
+          .limit(1);
+
+        if (availableStudios.length === 0) {
+          // No studios available — skip studio step, go directly to scheduled
+          await db
+            .update(battles)
+            .set({ status: "scheduled", updatedAt: new Date() })
+            .where(eq(battles.id, id));
+
+          await Promise.all([
+            createNotification(
+              battle.challengerId,
+              "battle_accepted",
+              "Düello Kabul Edildi!",
+              `${session.user.name} düello talebinizi kabul etti! Düello planlandı.`,
+              { battleId: id }
+            ),
+            createNotification(
+              battle.opponentId,
+              "battle_accepted",
+              "Düello Kabul Edildi",
+              "Düello kabul edildi ve planlandı!",
+              { battleId: id }
+            ),
+          ]);
+
+          return NextResponse.json({ message: "Düello kabul edildi ve planlandı", status: "scheduled" });
+        }
+
         await db
           .update(battles)
           .set({ status: "studio_pending", updatedAt: new Date() })
@@ -395,6 +429,32 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
         ]);
 
         return NextResponse.json({ message: "Stüdyo reddetti", status: "studio_rejected" });
+      }
+
+      case "skip-studio": {
+        // Allow dancers to skip studio selection when no studios are available
+        if (battle.challengerId !== userId && battle.opponentId !== userId) {
+          return NextResponse.json({ error: "Bu düelloda işlem yapamazsınız" }, { status: 403 });
+        }
+        if (battle.status !== "studio_pending") {
+          return NextResponse.json({ error: "Bu aşamada bu işlem yapılamaz" }, { status: 400 });
+        }
+
+        await db
+          .update(battles)
+          .set({ status: "scheduled", updatedAt: new Date() })
+          .where(eq(battles.id, id));
+
+        const otherUserId = userId === battle.challengerId ? battle.opponentId : battle.challengerId;
+        await createNotification(
+          otherUserId,
+          "battle_scheduled",
+          "Düello Planlandı!",
+          `Düellonuz stüdyosuz olarak planlandı.`,
+          { battleId: id }
+        );
+
+        return NextResponse.json({ message: "Düello stüdyosuz olarak planlandı", status: "scheduled" });
       }
 
       case "schedule": {

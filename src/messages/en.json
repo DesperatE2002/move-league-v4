@@ -180,7 +180,9 @@
     "studioLocationPlaceholder": "Hall name, floor, address details...",
     "studioWaitingApproval": "Waiting for studio approval...",
     "studioWaitingApprovalDesc": "Waiting for the matched studio to approve. You'll receive a notification when they respond.",
-    "studioApprovedMsg": "Studio approved! Battle scheduled."
+    "studioApprovedMsg": "Studio approved! Battle scheduled.",
+    "noStudiosAvailable": "No studios registered yet. You can continue without a studio.",
+    "skipStudio": "Continue Without Studio"
   },
   "rankings": {
     "noRankings": "No rankings yet",
