@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { users } from "@/db/schema/users";
+import { users, studios } from "@/db/schema/users";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { profileUpdateSchema } from "@/lib/validators";
@@ -127,6 +127,25 @@ export async function PATCH(req: NextRequest) {
         bio: users.bio,
         language: users.language,
       });
+
+    // Auto-create studio record if role is studio
+    if (data.role === "studio") {
+      const existingStudio = await db
+        .select({ id: studios.id })
+        .from(studios)
+        .where(eq(studios.ownerId, session.user.id))
+        .limit(1);
+      if (existingStudio.length === 0) {
+        await db.insert(studios).values({
+          ownerId: session.user.id,
+          name: `${data.name || updated[0].name} ${data.surname || updated[0].surname}`.trim(),
+          address: "",
+          city: data.city || updated[0].city || "",
+          country: data.country || updated[0].country || "T\u00FCrkiye",
+          isAvailable: true,
+        });
+      }
+    }
 
     return NextResponse.json(updated[0]);
   } catch (error) {

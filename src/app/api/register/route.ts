@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { users } from "@/db/schema/users";
+import { users, studios } from "@/db/schema/users";
 import { userConsents } from "@/db/schema/consents";
 import { eq } from "drizzle-orm";
 import bcryptjs from "bcryptjs";
@@ -112,6 +112,18 @@ export async function POST(req: NextRequest) {
 
     // Send welcome + verification email
     sendWelcomeEmail(email, name, rawToken);
+
+    // Auto-create studio record for studio role
+    if (role === "studio") {
+      await db.insert(studios).values({
+        ownerId: userId,
+        name: `${name} ${surname}`.trim(),
+        address: "",
+        city: "",
+        country: "Türkiye",
+        isAvailable: true,
+      });
+    }
 
     return NextResponse.json(
       { message: "Kayıt başarılı", user: newUser[0] },
