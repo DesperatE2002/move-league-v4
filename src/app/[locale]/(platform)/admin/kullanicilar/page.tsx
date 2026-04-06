@@ -33,6 +33,7 @@ interface UserItem {
   city: string | null;
   country: string | null;
   isActive: boolean;
+  isBanned: boolean;
   kvkkConsent: boolean | null;
   termsConsent: boolean | null;
   marketingConsent: boolean | null;
@@ -191,11 +192,11 @@ export default function AdminUsersPage() {
       u.surname.toLowerCase().includes(searchQ.toLowerCase()) ||
       u.username.toLowerCase().includes(searchQ.toLowerCase()) ||
       u.email.toLowerCase().includes(searchQ.toLowerCase());
-    const matchesView = viewMode === "all" ? u.isActive : !u.isActive;
+    const matchesView = viewMode === "all" ? !u.isBanned : u.isBanned;
     return matchesSearch && matchesView;
   });
 
-  const bannedCount = users.filter((u) => !u.isActive).length;
+  const bannedCount = users.filter((u) => u.isBanned).length;
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -228,7 +229,7 @@ export default function AdminUsersPage() {
           )}
         >
           <Users className="w-3.5 h-3.5 inline mr-1" />
-          {isTr ? "Aktif Kullanıcılar" : "Active Users"} ({users.filter(u => u.isActive).length})
+          {isTr ? "Kullanıcılar" : "Users"} ({users.filter(u => !u.isBanned).length})
         </button>
         <button
           onClick={() => setViewMode("banned")}
@@ -276,7 +277,7 @@ export default function AdminUsersPage() {
               key={user.id}
               className={cn(
                 "bg-ml-dark-card rounded-xl border p-4",
-                !user.isActive ? "border-ml-error/30 bg-ml-error/5" : "border-ml-dark-border"
+                user.isBanned ? "border-ml-error/30 bg-ml-error/5" : !user.isActive ? "border-ml-warning/30 bg-ml-warning/5" : "border-ml-dark-border"
               )}
             >
               <div className="flex items-start justify-between mb-2">
@@ -285,9 +286,14 @@ export default function AdminUsersPage() {
                     <p className="text-sm font-semibold text-ml-white truncate">
                       {user.name} {user.surname}
                     </p>
-                    {!user.isActive && (
+                    {user.isBanned && (
                       <span className="shrink-0 px-1.5 py-0.5 bg-ml-error/20 text-ml-error text-[10px] font-bold rounded">
                         {isTr ? "YASAKLI" : "BANNED"}
+                      </span>
+                    )}
+                    {!user.isActive && !user.isBanned && (
+                      <span className="shrink-0 px-1.5 py-0.5 bg-ml-warning/20 text-ml-warning text-[10px] font-bold rounded">
+                        {isTr ? "PASİF" : "PASSIVE"}
                       </span>
                     )}
                   </div>
@@ -308,19 +314,19 @@ export default function AdminUsersPage() {
                   {/* Ban/Unban */}
                   {user.id !== session?.user?.id && (
                     <button
-                      onClick={() => handleBanToggle(user.id, user.isActive)}
+                      onClick={() => handleBanToggle(user.id, !user.isBanned)}
                       disabled={banningId === user.id}
                       className={cn(
                         "p-1.5 rounded-lg transition-all disabled:opacity-50",
-                        user.isActive
+                        !user.isBanned
                           ? "text-ml-warning hover:bg-ml-warning/20"
                           : "text-ml-success hover:bg-ml-success/20"
                       )}
-                      title={user.isActive ? (isTr ? "Yasakla" : "Ban") : (isTr ? "Yasağı Kaldır" : "Unban")}
+                      title={!user.isBanned ? (isTr ? "Yasakla" : "Ban") : (isTr ? "Yasağı Kaldır" : "Unban")}
                     >
                       {banningId === user.id ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : user.isActive ? (
+                      ) : !user.isBanned ? (
                         <Ban className="w-4 h-4" />
                       ) : (
                         <CheckCircle className="w-4 h-4" />

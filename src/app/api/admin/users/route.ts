@@ -31,11 +31,19 @@ export async function GET() {
         marketingConsent: users.marketingConsent,
         consentAt: users.consentAt,
         createdAt: users.createdAt,
+        bannedEmail: bannedEmails.email,
       })
       .from(users)
+      .leftJoin(bannedEmails, eq(users.email, bannedEmails.email))
       .orderBy(users.createdAt);
 
-    return NextResponse.json({ users: allUsers });
+    const result = allUsers.map((u) => ({
+      ...u,
+      isBanned: !!u.bannedEmail,
+      bannedEmail: undefined,
+    }));
+
+    return NextResponse.json({ users: result });
   } catch (error) {
     console.error("Get users error:", error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
