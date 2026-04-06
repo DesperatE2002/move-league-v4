@@ -21,6 +21,8 @@ import {
   Mail,
   AlertTriangle,
   PauseCircle,
+  Camera,
+  X,
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -44,6 +46,8 @@ export default function SettingsPage() {
     bio: "",
     language: "tr",
   });
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -93,9 +97,76 @@ export default function SettingsPage() {
           language: data.language || "tr",
         });
         setIsActive(data.isActive !== false);
+        setAvatarUrl(data.avatarUrl || null);
       }
     } catch {
       // ignore
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError(isTr ? "Sadece resim dosyası yükleyebilirsiniz" : "Only image files are allowed");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError(isTr ? "Dosya boyutu en fazla 2MB olabilir" : "File size must be less than 2MB");
+      return;
+    }
+
+    setAvatarUploading(true);
+    setError("");
+
+    try {
+      const canvas = document.createElement("canvas");
+      const img = new Image();
+      const reader = new FileReader();
+
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => {
+          const size = 256;
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext("2d")!;
+          const min = Math.min(img.width, img.height);
+          const sx = (img.width - min) / 2;
+          const sy = (img.height - min) / 2;
+          ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+          resolve();
+        };
+        img.onerror = reject;
+        img.src = dataUrl;
+      });
+
+      const compressed = canvas.toDataURL("image/webp", 0.8);
+
+      const res = await fetch("/api/users/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatarUrl: compressed }),
+      });
+
+      if (res.ok) {
+        setAvatarUrl(compressed);
+        setSaved(true);
+      } else {
+        const data = await res.json();
+        setError(data.error || (isTr ? "Fotoğraf yüklenemedi" : "Failed to upload photo"));
+      }
+    } catch {
+      setError(isTr ? "Fotoğraf yüklenemedi" : "Failed to upload photo");
+    } finally {
+      setAvatarUploading(false);
+      e.target.value = "";
     }
   };
 
@@ -174,6 +245,56 @@ export default function SettingsPage() {
           <User className="w-4 h-4 text-ml-red" />
           {t("profileSettings")}
         </h2>
+
+        {/* Avatar Upload */}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full bg-ml-dark border-2 border-ml-dark-border flex items-center justify-center overflow-hidden">
+              {avatarUploading ? (
+                <Loader2 className="w-5 h-5 text-ml-red animate-spin" />
+              ) : avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-lg font-bold text-ml-red">
+                  {form.name?.[0] || "?"}{form.surname?.[0] || ""}
+                </span>
+              )}
+            </div>
+            <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-ml-red flex items-center justify-center cursor-pointer hover:bg-ml-red-light transition-colors shadow-lg">
+              <Camera className="w-3.5 h-3.5 text-white" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
+            </label>
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-medium text-ml-white">
+              {isTr ? "Profil Fotoğrafı" : "Profile Photo"}
+            </p>
+            <p className="text-[10px] text-ml-gray-500">
+              {isTr ? "JPG, PNG veya WebP. Maks 2MB." : "JPG, PNG or WebP. Max 2MB."}
+            </p>
+            {avatarUrl && (
+              <button
+                onClick={async () => {
+                  const res = await fetch("/api/users/me", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ avatarUrl: null }),
+                  });
+                  if (res.ok) setAvatarUrl(null);
+                }}
+                className="text-[10px] text-ml-red hover:underline mt-0.5 flex items-center gap-0.5"
+              >
+                <X className="w-3 h-3" />
+                {isTr ? "Fotoğrafı Kaldır" : "Remove Photo"}
+              </button>
+            )}
+          </div>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>

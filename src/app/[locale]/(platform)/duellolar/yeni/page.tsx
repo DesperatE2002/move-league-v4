@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { Search, Swords, Loader2, ArrowLeft, User, Music } from "lucide-react";
+import { Search, Swords, Loader2, ArrowLeft, User, Music, Zap, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DANCE_STYLES } from "@/lib/dance-styles";
 
@@ -16,6 +16,7 @@ interface UserResult {
   danceStyle: string | null;
   city: string | null;
   country: string | null;
+  rating?: number;
 }
 
 export default function NewBattlePage() {
@@ -32,6 +33,28 @@ export default function NewBattlePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [battleStyle, setBattleStyle] = useState("");
+  const [suggestions, setSuggestions] = useState<UserResult[]>([]);
+  const [myRating, setMyRating] = useState<number | null>(null);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchSuggestions();
+  }, []);
+
+  async function fetchSuggestions() {
+    try {
+      const res = await fetch("/api/users/search?suggestions=true");
+      if (res.ok) {
+        const data = await res.json();
+        setSuggestions(data.suggestions || []);
+        setMyRating(data.myRating ?? null);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  }
 
   async function handleSearch(q: string) {
     setQuery(q);
@@ -160,6 +183,69 @@ export default function NewBattlePage() {
                   </div>
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* ELO-based Suggestions */}
+          {!selected && results.length === 0 && !query && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-ml-gold" />
+                <p className="text-sm font-semibold text-ml-white">
+                  {t("suggestedOpponents")}
+                </p>
+                {myRating !== null && (
+                  <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-ml-gold/10 text-ml-gold border border-ml-gold/20 font-medium">
+                    <Trophy className="w-3 h-3 inline mr-0.5" />
+                    {myRating} ELO
+                  </span>
+                )}
+              </div>
+              {suggestionsLoading ? (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="w-5 h-5 text-ml-gold animate-spin" />
+                </div>
+              ) : suggestions.length > 0 ? (
+                <div className="space-y-2">
+                  {suggestions.map((user) => (
+                    <button
+                      key={user.id}
+                      onClick={() => {
+                        setSelected(user);
+                        setSuggestions([]);
+                      }}
+                      className="w-full flex items-center gap-3 p-3 bg-ml-dark-card rounded-xl border border-ml-gold/20 hover:border-ml-gold/40 transition-all text-left"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-ml-gold/10 flex items-center justify-center text-ml-gold font-bold text-sm">
+                        {user.avatarUrl ? (
+                          <img src={user.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
+                        ) : (
+                          user.name[0]
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-ml-white">
+                          {user.name} {user.surname}
+                        </p>
+                        <p className="text-xs text-ml-gray-400">
+                          @{user.username}
+                          {user.danceStyle && ` · ${user.danceStyle}`}
+                          {user.city && ` · ${user.city}`}
+                        </p>
+                      </div>
+                      {user.rating !== undefined && (
+                        <span className="text-xs font-bold text-ml-gold shrink-0">
+                          {user.rating}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-ml-gray-500 text-center py-4">
+                  {t("noSuggestions")}
+                </p>
+              )}
             </div>
           )}
 

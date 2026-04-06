@@ -123,6 +123,8 @@
     "noBattlesDesc": "İlk düellonuzu başlatmak için aşağıdaki butona tıklayın!",
     "searchOpponent": "Rakip Ara",
     "searchPlaceholder": "İsim veya kullanıcı adı...",
+    "suggestedOpponents": "Önerilen Rakipler",
+    "noSuggestions": "Henüz öneri bulunamadı. Düello yaparak ELO puanınızı oluşturun!",
     "selectedOpponent": "Seçilen Rakip",
     "change": "Değiştir",
     "sendChallenge": "Düello Gönder",

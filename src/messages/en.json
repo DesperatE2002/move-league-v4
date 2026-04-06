@@ -123,6 +123,8 @@
     "noBattlesDesc": "Click the button below to start your first battle!",
     "searchOpponent": "Search Opponent",
     "searchPlaceholder": "Name or username...",
+    "suggestedOpponents": "Suggested Opponents",
+    "noSuggestions": "No suggestions yet. Build your ELO rating by battling!",
     "selectedOpponent": "Selected Opponent",
     "change": "Change",
     "sendChallenge": "Send Challenge",

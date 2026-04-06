@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema/users";
+import { dancerRatings, seasons } from "@/db/schema/seasons";
 import { auth } from "@/lib/auth";
-import { and, ne, eq, or, ilike } from "drizzle-orm";
+import { and, ne, eq, or, ilike, desc, sql } from "drizzle-orm";
 
-// GET /api/users/search?q=query — Dansçı ara (düello rakibi seçmek için)
+// GET /api/users/search?q=query&suggestions=true — Dansçı ara (düello rakibi seçmek için)
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
@@ -14,6 +15,63 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q")?.trim();
+    const suggestions = searchParams.get("suggestions");
+
+    // Return ELO-based suggestions when no search query
+    if (suggestions === "true") {
+      // Get active season
+      const activeSeason = await db
+        .select({ id: seasons.id })
+        .from(seasons)
+        .where(eq(seasons.isActive, true))
+        .limit(1);
+
+      if (!activeSeason[0]) {
+        return NextResponse.json({ suggestions: [] });
+      }
+
+      // Get current user's rating
+      const myRating = await db
+        .select({ rating: dancerRatings.rating, danceStyle: dancerRatings.danceStyle })
+        .from(dancerRatings)
+        .where(
+          and(
+            eq(dancerRatings.userId, session.user.id),
+            eq(dancerRatings.seasonId, activeSeason[0].id)
+          )
+        )
+        .limit(1);
+
+      const currentRating = myRating[0]?.rating ?? 1000;
+
+      // Find users with close ratings (±300 range)
+      const suggestedUsers = await db
+        .select({
+          id: users.id,
+          name: users.name,
+          surname: users.surname,
+          username: users.username,
+          avatarUrl: users.avatarUrl,
+          danceStyle: users.danceStyle,
+          city: users.city,
+          country: users.country,
+          rating: dancerRatings.rating,
+        })
+        .from(dancerRatings)
+        .innerJoin(users, eq(users.id, dancerRatings.userId))
+        .where(
+          and(
+            ne(dancerRatings.userId, session.user.id),
+            eq(dancerRatings.seasonId, activeSeason[0].id),
+            eq(users.isActive, true),
+            sql`ABS(${dancerRatings.rating} - ${currentRating}) <= 300`
+          )
+        )
+        .orderBy(sql`ABS(${dancerRatings.rating} - ${currentRating})`)
+        .limit(5);
+
+      return NextResponse.json({ suggestions: suggestedUsers, myRating: currentRating });
+    }
 
     if (!q || q.length < 2) {
       return NextResponse.json({ users: [] });
