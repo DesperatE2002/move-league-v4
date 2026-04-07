@@ -345,7 +345,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
 
         const stName = approveStudio[0].name;
         const dateStr = approveDate
-          ? new Date(approveDate).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })
+          ? new Date(approveDate).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })
           : "";
         const locationStr = studioLocation ? `\nYer: ${studioLocation}` : "";
         const notesStr = studioNotes ? `\nNot: ${studioNotes}` : "";
@@ -438,7 +438,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
         // Send notification to both dancers
         const uStName = updateStudio[0].name;
         const uDateStr = updateDate
-          ? new Date(updateDate).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })
+          ? new Date(updateDate).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })
           : "";
         const uLocationStr = updateLocation ? `\nYer: ${updateLocation}` : "";
         const uNotesStr = updateNotes ? `\nNot: ${updateNotes}` : "";
@@ -471,7 +471,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
         await db.update(battles).set(updateData).where(eq(battles.id, id));
 
         // Notify both dancers
-        const msg = `Düellonuz planlandı: ${new Date(scheduledDate).toLocaleDateString("tr-TR")}`;
+        const msg = `Düellonuz planlandı: ${new Date(scheduledDate).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}`;
         await Promise.all([
           createNotification(battle.challengerId, "battle_scheduled", "Düello Planlandı!", msg, { battleId: id }),
           createNotification(battle.opponentId, "battle_scheduled", "Düello Planlandı!", msg, { battleId: id }),
