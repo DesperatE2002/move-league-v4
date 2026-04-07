@@ -397,6 +397,61 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
         return NextResponse.json({ message: "Stüdyo reddetti", status: "studio_rejected" });
       }
 
+      case "studio-update": {
+        // Studio owner updates an already-approved battle
+        if (role !== "studio" && role !== "admin") {
+          return NextResponse.json({ error: "Sadece stüdyo sahibi güncelleyebilir" }, { status: 403 });
+        }
+        if (!battle.studioId) {
+          return NextResponse.json({ error: "Bu düelloya stüdyo atanmamış" }, { status: 400 });
+        }
+        if (!["studio_approved", "scheduled", "judge_assigned"].includes(battle.status)) {
+          return NextResponse.json({ error: "Bu aşamada güncelleme yapılamaz" }, { status: 400 });
+        }
+
+        // Verify user owns the studio
+        const updateStudio = await db
+          .select({ ownerId: studios.ownerId, name: studios.name })
+          .from(studios)
+          .where(eq(studios.id, battle.studioId))
+          .limit(1);
+
+        if (!updateStudio[0] || (updateStudio[0].ownerId !== userId && role !== "admin")) {
+          return NextResponse.json({ error: "Bu stüdyonun sahibi değilsiniz" }, { status: 403 });
+        }
+
+        const { scheduledDate: updateDate, studioNotes: updateNotes, studioLocation: updateLocation } = body as {
+          scheduledDate?: string;
+          studioNotes?: string;
+          studioLocation?: string;
+        };
+
+        const studioUpdateFields: Record<string, unknown> = {
+          updatedAt: new Date(),
+        };
+        if (updateDate) {
+          studioUpdateFields.scheduledDate = new Date(updateDate);
+        }
+
+        await db.update(battles).set(studioUpdateFields).where(eq(battles.id, id));
+
+        // Send notification to both dancers
+        const uStName = updateStudio[0].name;
+        const uDateStr = updateDate
+          ? new Date(updateDate).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })
+          : "";
+        const uLocationStr = updateLocation ? `\nYer: ${updateLocation}` : "";
+        const uNotesStr = updateNotes ? `\nNot: ${updateNotes}` : "";
+        const updateMsg = `${uStName} stüdyosu düello bilgilerini güncelledi.${uDateStr ? ` Yeni Tarih: ${uDateStr}` : ""}${uLocationStr}${uNotesStr}`;
+
+        await Promise.all([
+          createNotification(battle.challengerId, "battle_scheduled", "Düello Güncellendi!", updateMsg, { battleId: id }),
+          createNotification(battle.opponentId, "battle_scheduled", "Düello Güncellendi!", updateMsg, { battleId: id }),
+        ]);
+
+        return NextResponse.json({ message: "Düello güncellendi", status: battle.status });
+      }
+
       case "schedule": {
         if (role !== "admin") {
           return NextResponse.json({ error: "Sadece admin planlama yapabilir" }, { status: 403 });

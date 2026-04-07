@@ -201,7 +201,16 @@
     "noManageDesc": "There are no approved or scheduled battles at your studio.",
     "noSchedule": "No battles scheduled this week",
     "thisWeek": "This Week",
-    "today": "Today"
+    "today": "Today",
+    "edit": "Edit",
+    "date": "Date",
+    "time": "Time",
+    "location": "Location",
+    "locationPlaceholder": "Hall name, address details...",
+    "notes": "Notes",
+    "notesPlaceholder": "Additional info, rules, etc.",
+    "saveUpdate": "Update & Notify",
+    "updateSuccess": "Updated! Notification sent to dancers."
   },
   "rankings": {
     "noRankings": "No rankings yet",

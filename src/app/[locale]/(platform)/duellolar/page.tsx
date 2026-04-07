@@ -18,6 +18,9 @@ import {
   ChevronRight,
   Music,
   MapPin,
+  Pencil,
+  Save,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -373,34 +376,15 @@ function StudioBattlesView({ locale, t, tBattle, tStudio }: {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+                <div className="space-y-3">
                   {manageBattles.map((battle) => (
-                    <a
+                    <ManageBattleCard
                       key={battle.id}
-                      href={`/${locale}/duellolar/${battle.id}`}
-                      className="block bg-ml-dark-card rounded-xl border border-ml-dark-border p-4 hover:border-ml-red/30 transition-all"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className={cn("flex items-center gap-1.5 text-xs font-medium", statusConfig[battle.status]?.color || "text-ml-gray-400")}>
-                          {statusConfig[battle.status]?.icon}
-                          {statusConfig[battle.status]?.label || battle.status}
-                        </div>
-                        {battle.scheduledDate && (
-                          <span className="text-xs text-ml-info">
-                            {new Date(battle.scheduledDate).toLocaleDateString("tr-TR", {
-                              day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
-                            })}
-                          </span>
-                        )}
-                      </div>
-                      <BattleParticipants battle={battle} />
-                      {battle.danceStyle && (
-                        <div className="mt-2 flex items-center gap-1.5 text-xs text-ml-gray-400">
-                          <Music className="w-3 h-3" />
-                          {battle.danceStyle}
-                        </div>
-                      )}
-                    </a>
+                      battle={battle}
+                      locale={locale}
+                      tStudio={tStudio}
+                      onUpdated={fetchStudioBattles}
+                    />
                   ))}
                 </div>
               )}
@@ -516,6 +500,185 @@ function StudioBattlesView({ locale, t, tBattle, tStudio }: {
             </div>
           )}
         </>
+      )}
+    </div>
+  );
+}
+
+// ─── Manage Card with Inline Edit ───────────────────────────
+
+function ManageBattleCard({ battle, locale, tStudio, onUpdated }: {
+  battle: Battle;
+  locale: string;
+  tStudio: ReturnType<typeof useTranslations>;
+  onUpdated: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  // Parse existing date into separate date and time fields
+  const existingDate = battle.scheduledDate ? new Date(battle.scheduledDate) : null;
+  const [date, setDate] = useState(
+    existingDate ? existingDate.toISOString().slice(0, 10) : ""
+  );
+  const [time, setTime] = useState(
+    existingDate
+      ? existingDate.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", hour12: false })
+      : ""
+  );
+  const [notes, setNotes] = useState("");
+  const [location, setLocation] = useState("");
+
+  async function handleSave() {
+    setSaving(true);
+    setError("");
+    setSuccess(false);
+    try {
+      const scheduledDate = date && time ? new Date(`${date}T${time}`).toISOString() : undefined;
+      const res = await fetch(`/api/battles/${battle.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "studio-update",
+          scheduledDate,
+          studioNotes: notes || undefined,
+          studioLocation: location || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        setError(d.error || "Hata oluştu");
+        return;
+      }
+      setSuccess(true);
+      setEditing(false);
+      onUpdated();
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      setError("Bağlantı hatası");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border p-4 transition-all">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className={cn("flex items-center gap-1.5 text-xs font-medium", statusConfig[battle.status]?.color || "text-ml-gray-400")}>
+          {statusConfig[battle.status]?.icon}
+          {statusConfig[battle.status]?.label || battle.status}
+        </div>
+        <div className="flex items-center gap-2">
+          {battle.scheduledDate && !editing && (
+            <span className="text-xs text-ml-info">
+              {new Date(battle.scheduledDate).toLocaleDateString("tr-TR", {
+                day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
+              })}
+            </span>
+          )}
+          {!editing ? (
+            <button
+              onClick={() => setEditing(true)}
+              className="p-1.5 rounded-lg bg-ml-dark-border/50 hover:bg-ml-red/20 text-ml-gray-400 hover:text-ml-red transition-all"
+              title={tStudio("edit")}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <button
+              onClick={() => { setEditing(false); setError(""); }}
+              className="p-1.5 rounded-lg bg-ml-dark-border/50 hover:bg-ml-red/20 text-ml-gray-400 hover:text-ml-red transition-all"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Participants — clickable to detail */}
+      <a href={`/${locale}/duellolar/${battle.id}`} className="block hover:opacity-80 transition-opacity">
+        <BattleParticipants battle={battle} />
+      </a>
+      {battle.danceStyle && (
+        <div className="mt-2 flex items-center gap-1.5 text-xs text-ml-gray-400">
+          <Music className="w-3 h-3" />
+          {battle.danceStyle}
+        </div>
+      )}
+
+      {/* Success message */}
+      {success && (
+        <div className="mt-3 p-2 rounded-lg bg-ml-success/10 border border-ml-success/30 text-ml-success text-xs text-center font-medium">
+          {tStudio("updateSuccess")}
+        </div>
+      )}
+
+      {/* Edit form */}
+      {editing && (
+        <div className="mt-3 pt-3 border-t border-ml-dark-border space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] text-ml-gray-500 mb-1">{tStudio("date")}</label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full px-3 py-2 bg-ml-dark border border-ml-dark-border rounded-lg text-sm text-ml-white focus:border-ml-red focus:ring-1 focus:ring-ml-red transition-all outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] text-ml-gray-500 mb-1">{tStudio("time")}</label>
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-full px-3 py-2 bg-ml-dark border border-ml-dark-border rounded-lg text-sm text-ml-white focus:border-ml-red focus:ring-1 focus:ring-ml-red transition-all outline-none"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] text-ml-gray-500 mb-1">{tStudio("location")}</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder={tStudio("locationPlaceholder")}
+              className="w-full px-3 py-2 bg-ml-dark border border-ml-dark-border rounded-lg text-sm text-ml-white placeholder:text-ml-gray-600 focus:border-ml-red focus:ring-1 focus:ring-ml-red transition-all outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] text-ml-gray-500 mb-1">{tStudio("notes")}</label>
+            <input
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder={tStudio("notesPlaceholder")}
+              className="w-full px-3 py-2 bg-ml-dark border border-ml-dark-border rounded-lg text-sm text-ml-white placeholder:text-ml-gray-600 focus:border-ml-red focus:ring-1 focus:ring-ml-red transition-all outline-none"
+            />
+          </div>
+
+          {error && (
+            <p className="text-xs text-ml-red text-center">{error}</p>
+          )}
+
+          <button
+            onClick={handleSave}
+            disabled={saving || (!date && !time && !notes && !location)}
+            className="w-full py-2.5 bg-ml-red hover:bg-ml-red-light text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                {tStudio("saveUpdate")}
+              </>
+            )}
+          </button>
+        </div>
       )}
     </div>
   );

@@ -201,7 +201,16 @@
     "noManageDesc": "Stüdyonuzda onaylanmış veya planlanan düello bulunmuyor.",
     "noSchedule": "Bu hafta planlanmış düello yok",
     "thisWeek": "Bu Hafta",
-    "today": "Bugün"
+    "today": "Bugün",
+    "edit": "Düzenle",
+    "date": "Tarih",
+    "time": "Saat",
+    "location": "Konum",
+    "locationPlaceholder": "Salon adı, adres detayı...",
+    "notes": "Not",
+    "notesPlaceholder": "Ek bilgiler, kurallar vb.",
+    "saveUpdate": "Güncelle ve Bildir",
+    "updateSuccess": "Güncellendi! Dansçılara bildirim gönderildi."
   },
   "rankings": {
     "noRankings": "Henüz sıralama yok",
