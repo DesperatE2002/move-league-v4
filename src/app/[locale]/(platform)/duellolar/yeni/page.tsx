@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { Search, Swords, Loader2, ArrowLeft, User, Music, Zap, Trophy } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Search, Swords, Loader2, ArrowLeft, User, Music, Zap, Trophy, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DANCE_STYLES } from "@/lib/dance-styles";
 
@@ -24,6 +25,7 @@ export default function NewBattlePage() {
   const params = useParams();
   const router = useRouter();
   const locale = params.locale as string;
+  const { data: session } = useSession();
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<UserResult[]>([]);
@@ -105,6 +107,35 @@ export default function NewBattlePage() {
     } finally {
       setSending(false);
     }
+  }
+
+  // Block studio/judge from creating battles
+  const userRole = session?.user?.role;
+  if (userRole === "studio" || userRole === "judge") {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex items-center gap-3">
+          <a
+            href={`/${locale}/duellolar`}
+            className="p-2 rounded-lg text-ml-gray-400 hover:text-ml-white hover:bg-ml-dark-card transition-all"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </a>
+          <h1 className="text-xl font-bold text-ml-white">{t("newBattle")}</h1>
+        </div>
+        <div className="bg-ml-dark-card rounded-xl border border-ml-warning/30 p-8 text-center">
+          <div className="inline-flex p-4 rounded-full bg-ml-warning/10 mb-4">
+            <ShieldAlert className="w-8 h-8 text-ml-warning" />
+          </div>
+          <h2 className="text-lg font-semibold text-ml-white mb-2">
+            {t("cannotCreateBattle")}
+          </h2>
+          <p className="text-sm text-ml-gray-400">
+            {t("cannotCreateBattleDesc")}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

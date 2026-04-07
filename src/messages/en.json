@@ -184,7 +184,24 @@
     "studioWaitingApprovalDesc": "Waiting for the matched studio to approve. You'll receive a notification when they respond.",
     "studioApprovedMsg": "Studio approved! Battle scheduled.",
     "noStudiosAvailable": "No studios registered yet. You can continue without a studio.",
-    "skipStudio": "Continue Without Studio"
+    "skipStudio": "Continue Without Studio",
+    "cannotCreateBattle": "Cannot Create Battle",
+    "cannotCreateBattleDesc": "Studio and judge accounts cannot create battles. Only dancer accounts can send battle challenges."
+  },
+  "studioBattles": {
+    "title": "Studio Battle Management",
+    "pendingTab": "Pending Approval",
+    "manageTab": "Manage",
+    "scheduleTab": "Weekly Schedule",
+    "noPending": "No Pending Requests",
+    "noPendingDesc": "There are no battle requests awaiting your approval right now.",
+    "awaitingApproval": "Awaiting Approval",
+    "tapToApprove": "Tap to approve or reject",
+    "noManage": "No Active Battles",
+    "noManageDesc": "There are no approved or scheduled battles at your studio.",
+    "noSchedule": "No battles scheduled this week",
+    "thisWeek": "This Week",
+    "today": "Today"
   },
   "rankings": {
     "noRankings": "No rankings yet",

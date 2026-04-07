@@ -184,7 +184,24 @@
     "studioWaitingApprovalDesc": "Eşleşen stüdyonun onayı bekleniyor. Stüdyo onayladığında bildirim alacaksınız.",
     "studioApprovedMsg": "Stüdyo onaylandı! Düello planlandı.",
     "noStudiosAvailable": "Henüz kayıtlı stüdyo bulunmuyor. Stüdyosuz devam edebilirsiniz.",
-    "skipStudio": "Stüdyosuz Devam Et"
+    "skipStudio": "Stüdyosuz Devam Et",
+    "cannotCreateBattle": "Düello Oluşturamazsınız",
+    "cannotCreateBattleDesc": "Stüdyo ve hakem hesapları düello oluşturamaz. Sadece dansçı hesapları düello atabilir."
+  },
+  "studioBattles": {
+    "title": "Stüdyo Düello Yönetimi",
+    "pendingTab": "Onay Bekleyen",
+    "manageTab": "Yönet",
+    "scheduleTab": "Haftalık Program",
+    "noPending": "Bekleyen Talep Yok",
+    "noPendingDesc": "Şu anda onayınızı bekleyen düello talebi bulunmuyor.",
+    "awaitingApproval": "Onay Bekliyor",
+    "tapToApprove": "Onaylamak veya reddetmek için tıklayın",
+    "noManage": "Aktif Düello Yok",
+    "noManageDesc": "Stüdyonuzda onaylanmış veya planlanan düello bulunmuyor.",
+    "noSchedule": "Bu hafta planlanmış düello yok",
+    "thisWeek": "Bu Hafta",
+    "today": "Bugün"
   },
   "rankings": {
     "noRankings": "Henüz sıralama yok",

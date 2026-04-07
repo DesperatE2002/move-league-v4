@@ -101,6 +101,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 401 });
     }
 
+    // Only dancers (and admins) can create battles
+    const userRole = session.user.role;
+    if (userRole === "studio" || userRole === "judge") {
+      return NextResponse.json(
+        { error: "Stüdyo ve hakem hesapları düello oluşturamaz" },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const parsed = createBattleSchema.safeParse(body);
 
