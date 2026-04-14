@@ -3,7 +3,8 @@ export const dynamic = 'force-dynamic';
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { users } from "@/db/schema/users";
-import { eq } from "drizzle-orm";
+import { dancerRatings, seasons } from "@/db/schema/seasons";
+import { eq, and } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import {
   MapPin,
@@ -41,6 +42,40 @@ export default async function ProfilePage({
         <p className="text-ml-gray-400">Kullanıcı bulunamadı</p>
       </div>
     );
+  }
+
+  // Fetch actual rating stats
+  let rating = 1000;
+  let wins = 0;
+  let losses = 0;
+  let totalBattles = 0;
+
+  if (session?.user?.id) {
+    const activeSeasonArr = await db
+      .select({ id: seasons.id })
+      .from(seasons)
+      .where(eq(seasons.isActive, true))
+      .limit(1);
+    const activeSeason = activeSeasonArr[0] ?? null;
+
+    if (activeSeason) {
+      const ratingArr = await db
+        .select()
+        .from(dancerRatings)
+        .where(
+          and(
+            eq(dancerRatings.userId, session.user.id),
+            eq(dancerRatings.seasonId, activeSeason.id)
+          )
+        );
+
+      if (ratingArr.length > 0) {
+        rating = Math.max(...ratingArr.map(r => r.rating ?? 1000));
+        wins = ratingArr.reduce((s, r) => s + (r.wins ?? 0), 0);
+        losses = ratingArr.reduce((s, r) => s + (r.losses ?? 0), 0);
+        totalBattles = ratingArr.reduce((s, r) => s + (r.totalBattles ?? 0), 0);
+      }
+    }
   }
 
   return (
@@ -115,26 +150,26 @@ export default async function ProfilePage({
       <div className="grid grid-cols-4 gap-2 lg:gap-4">
         <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border p-3 text-center">
           <Trophy className="w-4 h-4 text-ml-red mx-auto mb-1" />
-          <p className="text-lg font-bold text-ml-white">1000</p>
+          <p className="text-lg font-bold text-ml-white">{rating}</p>
           <p className="text-[10px] text-ml-gray-500">{t("rating")}</p>
         </div>
         <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border p-3 text-center">
           <Swords className="w-4 h-4 text-ml-gray-400 mx-auto mb-1" />
-          <p className="text-lg font-bold text-ml-white">0</p>
+          <p className="text-lg font-bold text-ml-white">{totalBattles}</p>
           <p className="text-[10px] text-ml-gray-500">{t("totalBattles")}</p>
         </div>
         <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border p-3 text-center">
           <div className="w-4 h-4 rounded-full bg-ml-success/20 mx-auto mb-1 flex items-center justify-center">
             <span className="text-[8px] text-ml-success font-bold">W</span>
           </div>
-          <p className="text-lg font-bold text-ml-success">0</p>
+          <p className="text-lg font-bold text-ml-success">{wins}</p>
           <p className="text-[10px] text-ml-gray-500">{t("wins")}</p>
         </div>
         <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border p-3 text-center">
           <div className="w-4 h-4 rounded-full bg-ml-error/20 mx-auto mb-1 flex items-center justify-center">
             <span className="text-[8px] text-ml-error font-bold">L</span>
           </div>
-          <p className="text-lg font-bold text-ml-error">0</p>
+          <p className="text-lg font-bold text-ml-error">{losses}</p>
           <p className="text-[10px] text-ml-gray-500">{t("losses")}</p>
         </div>
       </div>
