@@ -666,7 +666,7 @@ export default function BattleDetailPage() {
       )}
 
       {/* Judge Scoring Form */}
-      {["accepted", "scheduled", "judge_assigned"].includes(battle.status) &&
+      {["accepted", "scheduled", "judge_assigned", "studio_approved"].includes(battle.status) &&
         (session?.user?.role === "admin" || battle.judgeId === userId) &&
         !scoreSuccess && (
         <div className="space-y-4">

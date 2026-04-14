@@ -125,6 +125,8 @@
     "searchPlaceholder": "İsim veya kullanıcı adı...",
     "suggestedOpponents": "Önerilen Rakipler",
     "noSuggestions": "Henüz öneri bulunamadı. Düello yaparak ELO puanınızı oluşturun!",
+    "allDancers": "Tüm Dansçılar",
+    "noDancers": "Henüz kayıtlı dansçı bulunamadı.",
     "selectedOpponent": "Seçilen Rakip",
     "change": "Değiştir",
     "sendChallenge": "Düello Gönder",
@@ -186,7 +188,12 @@
     "noStudiosAvailable": "Henüz kayıtlı stüdyo bulunmuyor. Stüdyosuz devam edebilirsiniz.",
     "skipStudio": "Stüdyosuz Devam Et",
     "cannotCreateBattle": "Düello Oluşturamazsınız",
-    "cannotCreateBattleDesc": "Stüdyo ve hakem hesapları düello oluşturamaz. Sadece dansçı hesapları düello atabilir."
+    "cannotCreateBattleDesc": "Stüdyo ve hakem hesapları düello oluşturamaz. Sadece dansçı hesapları düello atabilir.",
+    "judgeBattles": "Hakem Paneli",
+    "scoreable": "Puanlanacak",
+    "readyToScore": "Puanla",
+    "noJudgeBattles": "Henüz atanmış düellonuz yok",
+    "noJudgeBattlesDesc": "Size atanan düellolar burada görünecektir."
   },
   "studioBattles": {
     "title": "Stüdyo Düello Yönetimi",

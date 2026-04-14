@@ -125,6 +125,8 @@
     "searchPlaceholder": "Name or username...",
     "suggestedOpponents": "Suggested Opponents",
     "noSuggestions": "No suggestions yet. Build your ELO rating by battling!",
+    "allDancers": "All Dancers",
+    "noDancers": "No dancers found yet.",
     "selectedOpponent": "Selected Opponent",
     "change": "Change",
     "sendChallenge": "Send Challenge",
@@ -186,7 +188,12 @@
     "noStudiosAvailable": "No studios registered yet. You can continue without a studio.",
     "skipStudio": "Continue Without Studio",
     "cannotCreateBattle": "Cannot Create Battle",
-    "cannotCreateBattleDesc": "Studio and judge accounts cannot create battles. Only dancer accounts can send battle challenges."
+    "cannotCreateBattleDesc": "Studio and judge accounts cannot create battles. Only dancer accounts can send battle challenges.",
+    "judgeBattles": "Judge Panel",
+    "scoreable": "Ready to Score",
+    "readyToScore": "Score",
+    "noJudgeBattles": "No assigned battles yet",
+    "noJudgeBattlesDesc": "Battles assigned to you will appear here."
   },
   "studioBattles": {
     "title": "Studio Battle Management",

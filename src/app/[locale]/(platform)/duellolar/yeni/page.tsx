@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Search, Swords, Loader2, ArrowLeft, User, Music, Zap, Trophy, ShieldAlert } from "lucide-react";
+import { Search, Swords, Loader2, ArrowLeft, User, Music, Zap, Trophy, ShieldAlert, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DANCE_STYLES } from "@/lib/dance-styles";
 
@@ -38,9 +38,12 @@ export default function NewBattlePage() {
   const [suggestions, setSuggestions] = useState<UserResult[]>([]);
   const [myRating, setMyRating] = useState<number | null>(null);
   const [suggestionsLoading, setSuggestionsLoading] = useState(true);
+  const [allDancers, setAllDancers] = useState<UserResult[]>([]);
+  const [allDancersLoading, setAllDancersLoading] = useState(true);
 
   useEffect(() => {
     fetchSuggestions();
+    fetchAllDancers();
   }, []);
 
   async function fetchSuggestions() {
@@ -55,6 +58,20 @@ export default function NewBattlePage() {
       // silently fail
     } finally {
       setSuggestionsLoading(false);
+    }
+  }
+
+  async function fetchAllDancers() {
+    try {
+      const res = await fetch("/api/users/search?browse=true");
+      if (res.ok) {
+        const data = await res.json();
+        setAllDancers(data.users || []);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setAllDancersLoading(false);
     }
   }
 
@@ -275,6 +292,64 @@ export default function NewBattlePage() {
               ) : (
                 <p className="text-xs text-ml-gray-500 text-center py-4">
                   {t("noSuggestions")}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* All Dancers Browse List */}
+          {!selected && results.length === 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-ml-info" />
+                <p className="text-sm font-semibold text-ml-white">
+                  {t("allDancers")}
+                </p>
+              </div>
+              {allDancersLoading ? (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="w-5 h-5 text-ml-info animate-spin" />
+                </div>
+              ) : allDancers.length > 0 ? (
+                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                  {allDancers.map((user) => (
+                    <button
+                      key={user.id}
+                      onClick={() => {
+                        setSelected(user);
+                        setAllDancers([]);
+                        setSuggestions([]);
+                      }}
+                      className="w-full flex items-center gap-3 p-3 bg-ml-dark-card rounded-xl border border-ml-dark-border hover:border-ml-info/40 transition-all text-left"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-ml-info/10 flex items-center justify-center text-ml-info font-bold text-sm">
+                        {user.avatarUrl ? (
+                          <img src={user.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
+                        ) : (
+                          user.name[0]
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-ml-white">
+                          {user.name} {user.surname}
+                        </p>
+                        <p className="text-xs text-ml-gray-400">
+                          @{user.username}
+                          {user.danceStyle && ` · ${user.danceStyle}`}
+                          {user.city && ` · ${user.city}`}
+                        </p>
+                      </div>
+                      {user.rating !== undefined && (
+                        <span className="text-xs font-bold text-ml-gold shrink-0">
+                          {user.rating} ELO
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-ml-gray-500 text-center py-4">
+                  {t("noDancers")}
                 </p>
               )}
             </div>

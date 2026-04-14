@@ -21,12 +21,14 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get("status");
 
     const userId = session.user.id;
+    const isJudge = session.user.role === "judge";
 
     const allBattles = await db
       .select({
         id: battles.id,
         challengerId: battles.challengerId,
         opponentId: battles.opponentId,
+        judgeId: battles.judgeId,
         status: battles.status,
         scheduledDate: battles.scheduledDate,
         challengerScore: battles.challengerScore,
@@ -37,10 +39,16 @@ export async function GET(req: NextRequest) {
       })
       .from(battles)
       .where(
-        or(
-          eq(battles.challengerId, userId),
-          eq(battles.opponentId, userId)
-        )
+        isJudge
+          ? or(
+              eq(battles.judgeId, userId),
+              eq(battles.challengerId, userId),
+              eq(battles.opponentId, userId)
+            )
+          : or(
+              eq(battles.challengerId, userId),
+              eq(battles.opponentId, userId)
+            )
       )
       .orderBy(desc(battles.createdAt))
       .limit(50);

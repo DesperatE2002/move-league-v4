@@ -536,7 +536,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
       return NextResponse.json({ error: "Puanlama yetkiniz yok" }, { status: 403 });
     }
 
-    if (!["judge_assigned", "scheduled", "accepted"].includes(battle.status)) {
+    if (!["judge_assigned", "scheduled", "accepted", "studio_approved"].includes(battle.status)) {
       return NextResponse.json({ error: "Bu düello puanlanamaz" }, { status: 400 });
     }
 
@@ -627,12 +627,9 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
 
         ratingChange = elo.winnerChange;
 
-        const winnerNewR = isChWinner ? elo.winnerNewRating : elo.loserNewRating;
-        const loserNewR = isChWinner ? elo.loserNewRating : elo.winnerNewRating;
-
         for (const { uId, newR, won } of [
-          { uId: battle.challengerId, newR: isChWinner ? winnerNewR : loserNewR, won: isChWinner },
-          { uId: battle.opponentId, newR: isChWinner ? loserNewR : winnerNewR, won: !isChWinner },
+          { uId: battle.challengerId, newR: isChWinner ? elo.winnerNewRating : elo.loserNewRating, won: isChWinner },
+          { uId: battle.opponentId, newR: isChWinner ? elo.loserNewRating : elo.winnerNewRating, won: !isChWinner },
         ]) {
           const existing = await db.select().from(dancerRatings).where(
             and(eq(dancerRatings.userId, uId), eq(dancerRatings.seasonId, battle.seasonId), styleCondition)

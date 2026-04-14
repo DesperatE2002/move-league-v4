@@ -21,6 +21,7 @@ import {
   Pencil,
   Save,
   X,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ interface Battle {
   id: string;
   challengerId: string;
   opponentId: string;
+  judgeId: string | null;
   status: string;
   scheduledDate: string | null;
   danceStyle: string | null;
@@ -70,9 +72,14 @@ export default function BattlesPage() {
   const { data: session } = useSession();
 
   const isStudio = session?.user?.role === "studio";
+  const isJudge = session?.user?.role === "judge";
 
   if (isStudio) {
     return <StudioBattlesView locale={locale} t={t} tBattle={tBattle} tStudio={tStudio} />;
+  }
+
+  if (isJudge) {
+    return <JudgeBattlesView locale={locale} t={t} tBattle={tBattle} />;
   }
 
   return <DancerBattlesView locale={locale} t={t} tBattle={tBattle} />;
@@ -724,6 +731,148 @@ function BattleParticipants({ battle }: { battle: Battle }) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── Judge View ────────────────────────────────────────────
+function JudgeBattlesView({ locale, t, tBattle }: { locale: string; t: ReturnType<typeof useTranslations>; tBattle: ReturnType<typeof useTranslations> }) {
+  const [battles, setBattles] = useState<Battle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<string>("scoreable");
+
+  useEffect(() => {
+    fetchBattles();
+  }, []);
+
+  async function fetchBattles() {
+    try {
+      const res = await fetch("/api/battles");
+      if (res.ok) {
+        const data = await res.json();
+        setBattles(data);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const scoreableStatuses = ["accepted", "scheduled", "judge_assigned", "studio_approved"];
+
+  const filteredBattles = filter === "all"
+    ? battles
+    : filter === "scoreable"
+    ? battles.filter((b) => scoreableStatuses.includes(b.status))
+    : battles.filter((b) => b.status === filter);
+
+  const filters = [
+    { key: "scoreable", label: tBattle("scoreable") },
+    { key: "all", label: tBattle("all") },
+    { key: "completed", label: tBattle("completed") },
+  ];
+
+  return (
+    <div className="space-y-4 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-ml-white flex items-center gap-2">
+          <ClipboardCheck className="w-5 h-5 text-ml-gold" />
+          {tBattle("judgeBattles")}
+        </h1>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {filters.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all",
+              filter === f.key
+                ? "bg-ml-gold text-black"
+                : "bg-ml-dark-card text-ml-gray-400 border border-ml-dark-border hover:border-ml-gold/40"
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Battle List */}
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-6 h-6 text-ml-gold animate-spin" />
+        </div>
+      ) : filteredBattles.length === 0 ? (
+        <div className="bg-ml-dark-card rounded-xl border border-ml-dark-border p-8 text-center">
+          <div className="inline-flex p-4 rounded-full bg-ml-gold/10 mb-4">
+            <ClipboardCheck className="w-8 h-8 text-ml-gold" />
+          </div>
+          <h2 className="text-lg font-semibold text-ml-white mb-2">
+            {tBattle("noJudgeBattles")}
+          </h2>
+          <p className="text-sm text-ml-gray-400">
+            {tBattle("noJudgeBattlesDesc")}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+          {filteredBattles.map((battle) => (
+            <a
+              key={battle.id}
+              href={`/${locale}/duellolar/${battle.id}`}
+              className="block bg-ml-dark-card rounded-xl border border-ml-dark-border p-4 hover:border-ml-gold/30 transition-all"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className={cn(
+                  "flex items-center gap-1.5 text-xs font-medium",
+                  (statusConfig[battle.status] || statusConfig.pending).color
+                )}>
+                  {(statusConfig[battle.status] || statusConfig.pending).icon}
+                  {(statusConfig[battle.status] || statusConfig.pending).label}
+                </div>
+                {scoreableStatuses.includes(battle.status) && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-ml-gold/10 text-ml-gold border border-ml-gold/20 font-medium">
+                    {tBattle("readyToScore")}
+                  </span>
+                )}
+              </div>
+
+              <BattleParticipants battle={battle} />
+
+              {battle.scheduledDate && (
+                <div className="mt-2 flex items-center gap-1.5 text-xs text-ml-gray-400">
+                  <CalendarDays className="w-3 h-3" />
+                  {new Date(battle.scheduledDate).toLocaleDateString("tr-TR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
+                </div>
+              )}
+
+              {battle.status === "completed" && (
+                <div className="mt-3 pt-3 border-t border-ml-dark-border flex items-center justify-center gap-4 text-sm">
+                  <span className={cn(
+                    "font-bold",
+                    battle.winnerId === battle.challengerId ? "text-ml-success" : "text-ml-gray-400"
+                  )}>
+                    {battle.challengerScore}
+                  </span>
+                  <span className="text-ml-gray-500">—</span>
+                  <span className={cn(
+                    "font-bold",
+                    battle.winnerId === battle.opponentId ? "text-ml-success" : "text-ml-gray-400"
+                  )}>
+                    {battle.opponentScore}
+                  </span>
+                  {battle.ratingChange && (
+                    <span className="text-xs text-ml-gold ml-2">±{battle.ratingChange} ELO</span>
+                  )}
+                </div>
+              )}
+            </a>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

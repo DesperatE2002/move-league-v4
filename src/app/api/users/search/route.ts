@@ -3,9 +3,9 @@ import { db } from "@/db";
 import { users } from "@/db/schema/users";
 import { dancerRatings, seasons } from "@/db/schema/seasons";
 import { auth } from "@/lib/auth";
-import { and, ne, eq, or, ilike, desc, sql } from "drizzle-orm";
+import { and, ne, eq, or, ilike, desc, sql, asc } from "drizzle-orm";
 
-// GET /api/users/search?q=query&suggestions=true — Dansçı ara (düello rakibi seçmek için)
+// GET /api/users/search?q=query&suggestions=true&browse=true — Dansçı ara (düello rakibi seçmek için)
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
@@ -16,6 +16,49 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q")?.trim();
     const suggestions = searchParams.get("suggestions");
+    const browse = searchParams.get("browse");
+
+    // Browse all active dancers with ratings
+    if (browse === "true") {
+      const activeSeason = await db
+        .select({ id: seasons.id })
+        .from(seasons)
+        .where(eq(seasons.isActive, true))
+        .limit(1);
+
+      const allDancers = await db
+        .select({
+          id: users.id,
+          name: users.name,
+          surname: users.surname,
+          username: users.username,
+          avatarUrl: users.avatarUrl,
+          danceStyle: users.danceStyle,
+          city: users.city,
+          country: users.country,
+          rating: activeSeason[0]
+            ? sql<number>`COALESCE((SELECT ${dancerRatings.rating} FROM ${dancerRatings} WHERE ${dancerRatings.userId} = ${users.id} AND ${dancerRatings.seasonId} = ${activeSeason[0].id} LIMIT 1), 1000)`
+            : sql<number>`1000`,
+        })
+        .from(users)
+        .where(
+          and(
+            ne(users.id, session.user.id),
+            eq(users.isActive, true),
+            eq(users.role, "dancer")
+          )
+        )
+        .orderBy(
+          desc(
+            activeSeason[0]
+              ? sql`COALESCE((SELECT ${dancerRatings.rating} FROM ${dancerRatings} WHERE ${dancerRatings.userId} = ${users.id} AND ${dancerRatings.seasonId} = ${activeSeason[0].id} LIMIT 1), 1000)`
+              : sql`1000`
+          )
+        )
+        .limit(100);
+
+      return NextResponse.json({ users: allDancers });
+    }
 
     // Return ELO-based suggestions when no search query
     if (suggestions === "true") {
