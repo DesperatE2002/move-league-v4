@@ -19,6 +19,7 @@ import {
   Megaphone,
   CalendarDays,
   MessageSquarePlus,
+  Crown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -137,6 +138,13 @@ export default function AdminPage() {
       icon: <MessageSquarePlus className="w-5 h-5" />,
       href: `/${locale}/admin/geri-bildirimler`,
       color: "text-teal-400",
+    },
+    {
+      title: t("leagueManagement"),
+      desc: t("leagueManagementDesc"),
+      icon: <Crown className="w-5 h-5" />,
+      href: `/${locale}/admin/ozel-ligler`,
+      color: "text-ml-gold",
     },
   ];
 

@@ -18,6 +18,7 @@ import {
   Megaphone,
   CalendarDays,
   MessageSquarePlus,
+  Crown,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -59,6 +60,7 @@ export default function Sidebar({ role }: { role: string }) {
     { key: "workshops", href: `/${locale}/atolyeler`, icon: <GraduationCap className="w-5 h-5" /> },
     { key: "teams", href: `/${locale}/takimlar`, icon: <Users className="w-5 h-5" /> },
     { key: "competitions", href: `/${locale}/yarisma`, icon: <Medal className="w-5 h-5" /> },
+    { key: "privateLeagues", href: `/${locale}/ozel-ligler`, icon: <Crown className="w-5 h-5" /> },
     { key: "rankings", href: `/${locale}/siralama`, icon: <Trophy className="w-5 h-5" /> },
     { key: "announcements", href: `/${locale}/duyurular`, icon: <Megaphone className="w-5 h-5" /> },
     { key: "notifications", href: `/${locale}/bildirimler`, icon: <Bell className="w-5 h-5" /> },

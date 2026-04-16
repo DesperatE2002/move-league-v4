@@ -10,6 +10,7 @@ import * as teams from "./schema/teams";
 import * as consents from "./schema/consents";
 import * as announcements from "./schema/announcements";
 import * as feedbacks from "./schema/feedbacks";
+import * as leagues from "./schema/leagues";
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -25,6 +26,7 @@ export const db = drizzle(sql, {
     ...consents,
     ...announcements,
     ...feedbacks,
+    ...leagues,
   },
 });
 

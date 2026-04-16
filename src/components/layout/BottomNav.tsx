@@ -20,6 +20,7 @@ import {
   CalendarDays,
   Menu,
   X,
+  Crown,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -76,6 +77,7 @@ export default function BottomNav({ role }: { role: string }) {
     { key: "workshops", href: `/${locale}/atolyeler`, icon: <GraduationCap className="w-5 h-5" /> },
     { key: "teams", href: `/${locale}/takimlar`, icon: <Users className="w-5 h-5" /> },
     { key: "competitions", href: `/${locale}/yarisma`, icon: <Medal className="w-5 h-5" /> },
+    { key: "privateLeagues", href: `/${locale}/ozel-ligler`, icon: <Crown className="w-5 h-5" /> },
     { key: "announcements", href: `/${locale}/duyurular`, icon: <Megaphone className="w-5 h-5" /> },
     ...(role === "judge" || role === "admin"
       ? [{ key: "schedule", href: `/${locale}/hakem-programi`, icon: <CalendarDays className="w-5 h-5" /> }]
